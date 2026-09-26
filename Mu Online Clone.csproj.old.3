@@ -1,0 +1,65 @@
+<Project Sdk="Godot.NET.Sdk/4.6.0">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework Condition=" '$(GodotTargetPlatform)' == 'android' ">net9.0</TargetFramework>
+    <EnableDynamicLoading>true</EnableDynamicLoading>
+    <RootNamespace>MuOnlineClone</RootNamespace>
+  </PropertyGroup>
+  
+  <ItemGroup>
+  <Reference Include="BCnEncoder">
+    <HintPath>bin/BCnEncoder.dll</HintPath>
+  </Reference>
+
+  <Reference Include="Delizious.Ini">
+    <HintPath>bin/Delizious.Ini.dll</HintPath>
+  </Reference>
+
+  <Reference Include="BouncyCastle.Crypto">
+    <HintPath>bin/BouncyCastle.Crypto.dll</HintPath>
+  </Reference>
+
+  <Reference Include="CommunityToolkit.HighPerformance">
+    <HintPath>bin/CommunityToolkit.HighPerformance.dll</HintPath>
+  </Reference>
+
+  <Reference Include="ICSharpCode.SharpZipLib">
+    <HintPath>bin/ICSharpCode.SharpZipLib.dll</HintPath>
+  </Reference>
+  <Reference Include="IniFileParser">
+    <HintPath>bin/IniFileParser.dll</HintPath>
+  </Reference>
+
+  <Reference Include="INIFileParserDotNetCore">
+    <HintPath>bin/INIFileParserDotNetCore.dll</HintPath>
+  </Reference>
+
+  <Reference Include="Lea">
+    <HintPath>bin/Lea.dll</HintPath>
+  </Reference>
+
+  <Reference Include="Microsoft.Extensions.Logging">
+    <HintPath>bin/Microsoft.Extensions.Logging.dll</HintPath>
+  </Reference>
+
+  <Reference Include="NLayer">
+    <HintPath>bin/NLayer.dll</HintPath>
+  </Reference>
+
+  <Reference Include="NVorbis">
+    <HintPath>bin/NVorbis.dll</HintPath>
+  </Reference>
+
+   <Reference Include="SixLabors.ImageSharp">
+    <HintPath>bin/SixLabors.ImageSharp.dll</HintPath>
+  </Reference>
+
+  <Reference Include="System.Runtime.CompilerServices.Unsafe">
+    <HintPath>bin/System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+  </Reference>
+
+  <Reference Include="LEA.NET">
+    <HintPath>bin/LEA.NET.dll</HintPath>
+  </Reference>
+</ItemGroup>
+</Project>
