@@ -2,8 +2,7 @@ using System;
 using System.IO;
 using Godot;
 
-namespace Client.Main
-{
+
     public static class Utils
     {
         public static string GetActualPath(string path)
@@ -38,4 +37,4 @@ namespace Client.Main
             return realPath;
         }
     }
-}
+

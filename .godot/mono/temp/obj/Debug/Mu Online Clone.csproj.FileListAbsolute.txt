@@ -88,3 +88,4 @@ C:\Users\User\Godot\Godot-Mu-Online\.godot\mono\temp\obj\Debug\refint\Mu Online 
 C:\Users\User\Godot\Godot-Mu-Online\.godot\mono\temp\obj\Debug\Mu Online Clone.pdb
 C:\Users\User\Godot\Godot-Mu-Online\.godot\mono\temp\obj\Debug\Mu Online Clone.genruntimeconfig.cache
 C:\Users\User\Godot\Godot-Mu-Online\.godot\mono\temp\obj\Debug\ref\Mu Online Clone.dll
+C:\Users\User\Godot\Godot-Mu-Online\.godot\mono\temp\obj\Debug\Mu Online Clone.sourcelink.json
