@@ -1,1 +1,1 @@
-Mu Online Clone in Godot 4.6
+Mu Online Clone in Godot 4.7
