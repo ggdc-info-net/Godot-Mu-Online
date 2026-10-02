@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\USERS\\USER\\GODOT\\GODOT-MU-ONLINE\\Mu Online Clone.csproj": {}
+    "C:\\Users\\User\\Godot\\Godot-Mu-Online\\Mu Online Clone.csproj": {}
   },
   "projects": {
-    "C:\\USERS\\USER\\GODOT\\GODOT-MU-ONLINE\\Mu Online Clone.csproj": {
+    "C:\\Users\\User\\Godot\\Godot-Mu-Online\\Mu Online Clone.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\USERS\\USER\\GODOT\\GODOT-MU-ONLINE\\Mu Online Clone.csproj",
+        "projectUniqueName": "C:\\Users\\User\\Godot\\Godot-Mu-Online\\Mu Online Clone.csproj",
         "projectName": "Mu Online Clone",
-        "projectPath": "C:\\USERS\\USER\\GODOT\\GODOT-MU-ONLINE\\Mu Online Clone.csproj",
+        "projectPath": "C:\\Users\\User\\Godot\\Godot-Mu-Online\\Mu Online Clone.csproj",
         "packagesPath": "C:\\Users\\User\\.nuget\\packages\\",
-        "outputPath": "C:\\USERS\\USER\\GODOT\\GODOT-MU-ONLINE\\.godot\\mono\\temp\\obj\\",
+        "outputPath": "C:\\Users\\User\\Godot\\Godot-Mu-Online\\.godot\\mono\\temp\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\User\\AppData\\Roaming\\NuGet\\NuGet.Config",

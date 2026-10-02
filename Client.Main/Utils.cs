@@ -10,6 +10,7 @@ namespace Client.Main
         {
             if (string.IsNullOrWhiteSpace(path))
                 return path;
+                //kl
 
             // Convert res:// or user:// to OS path
             string realPath = ProjectSettings.GlobalizePath(path);
