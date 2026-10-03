@@ -1,7 +1,7 @@
 using Godot;
 using System.IO;
 using System.Threading.Tasks;
-using MuGodot; // Το namespace από τα έτοιμα scripts που βρήκες!
+using MuGodot; 
 
 public partial class PlayerControl : Node3D
 {
@@ -10,11 +10,32 @@ public partial class PlayerControl : Node3D
     private MuAnimatedMeshController _mainAnimController; 
     private Node3D _weaponPivot;
     private MeshInstance3D _weaponMesh;
+    
+    // Προσθέτουμε μια μεταβλητή για την Isometric Κάμερα
+    private CameraControl _playerCamera;
 
     public override async void _Ready()
     {
         _modelBuilder = new MuModelBuilder();
         await SpawnAsync();
+        
+        // --- SETUP ΤΗΣ ΚΑΜΕΡΑΣ ---
+        _playerCamera = new CameraControl { Name = "MainCamera" };
+        GetParent().AddChild(_playerCamera); 
+        
+        _playerCamera.Initialize(() => this.GlobalPosition);
+        // -------------------------
+
+        // Περιμένουμε το Terrain
+        while (TerrainControl.Instance == null || !TerrainControl.Instance.IsLoaded)
+        {
+            await ToSignal(GetTree(), "process_frame");
+        }
+        
+        TeleportToTile(138, 138, 45f);
+        
+        // Κάνουμε reset την κάμερα ώστε να πάει ΑΜΕΣΩΣ στο νέο σημείο 
+        _playerCamera.ResetAndUpdate();
     }
 
     public async Task SpawnAsync()
@@ -22,7 +43,6 @@ public partial class PlayerControl : Node3D
         _skeletonBmd = await _modelBuilder.LoadBmdAsync("Player/Player.bmd");
         if (_skeletonBmd == null) return;
 
-        // 2. Τα κομμάτια της πανοπλίας του Dark Wizard
         string[] parts = { 
             "HelmClass01.bmd", 
             "ArmorClass01.bmd", 
@@ -92,7 +112,6 @@ public partial class PlayerControl : Node3D
         {
             int currentAction = _mainAnimController.ActionIndex;
             float currentFrame = _mainAnimController.FramePosition;
-
             int targetBoneIndex = 33; 
 
             if (_modelBuilder.TryGetBoneTransform(_skeletonBmd, currentAction, currentFrame, targetBoneIndex, out Transform3D boneTransform))
@@ -100,5 +119,32 @@ public partial class PlayerControl : Node3D
                 _weaponPivot.Transform = boneTransform;
             }
         }
+
+        if (_playerCamera != null)
+        {
+            _playerCamera.Update(delta);
+        }
+    }
+
+    public void TeleportToTile(int tileX, int tileY, float facingDegrees = 0f)
+    {
+        float scale = Client.Main.Constants.TERRAIN_SCALE;
+        float gridX = (tileX + 0.5f) * scale;
+        float gridZ = (tileY + 0.5f) * scale;
+
+        float height = 0f;
+        if (TerrainControl.Instance != null && TerrainControl.Instance.IsLoaded)
+        {
+            height = TerrainControl.Instance.GetHeight(gridX, gridZ); 
+        }
+
+        Vector3 targetPos = new Vector3(gridX, height, -gridZ);
+        this.GlobalPosition = targetPos;
+
+        Vector3 currentRotation = this.RotationDegrees;
+        currentRotation.Y = facingDegrees;
+        this.RotationDegrees = currentRotation;
+
+        GD.Print($"[PlayerControl] Τηλεμεταφορά: Tile({tileX}, {tileY}) -> World Pos: {targetPos}");
     }
 }
