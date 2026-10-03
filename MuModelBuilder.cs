@@ -1,0 +1,349 @@
+using Client.Data;
+using Client.Data.BMD;
+using Client.Main.Content; // Εδώ είναι ο δικός σου TextureLoader!
+using Godot;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using SysVector3 = System.Numerics.Vector3;
+using SysQuaternion = System.Numerics.Quaternion;
+using SysMatrix = System.Numerics.Matrix4x4;
+using System.Linq;
+
+namespace MuGodot;
+
+public class MuModelBuilder
+{
+    private readonly BMDReader _reader = new();
+    private readonly Dictionary<string, BMD> _cache = new(StringComparer.OrdinalIgnoreCase);
+    private readonly HashSet<string> _loggedMissing = new();
+
+    public async Task<ArrayMesh?> LoadModelAsync(string relativePath)
+    {
+        var bmd = await LoadBmdAsync(relativePath);
+        if (bmd == null) return null;
+        return BuildMesh(bmd, actionIndex: 0, framePos: 0f);
+    }
+
+    public async Task<BMD?> LoadBmdAsync(string relativePath, bool logMissing = true)
+    {
+        var fullPath = System.IO.Path.Combine(Constants.DataPath, relativePath);
+
+        if (!System.IO.File.Exists(fullPath))
+            fullPath = FindFileInsensitive(fullPath);
+
+        if (fullPath == null || !System.IO.File.Exists(fullPath))
+        {
+            if (logMissing && _loggedMissing.Add(relativePath))
+                GD.Print($"  [BMD] Not found: {relativePath}");
+            return null;
+        }
+
+        if (_cache.TryGetValue(fullPath, out var cached))
+            return cached;
+
+        var bmd = await _reader.Load(fullPath);
+        _cache[fullPath] = bmd;
+        return bmd;
+    }
+
+    public bool HasAnimatedAction(BMD bmd, int actionIndex = 0)
+    {
+        if (bmd.Bones == null || bmd.Bones.Length == 0 || bmd.Actions == null || bmd.Actions.Length == 0)
+            return false;
+
+        actionIndex = Math.Clamp(actionIndex, 0, bmd.Actions.Length - 1);
+        return bmd.Actions[actionIndex].NumAnimationKeys > 1;
+    }
+
+    public float GetActionPlaySpeed(BMD bmd, int actionIndex = 0)
+    {
+        if (bmd.Actions == null || bmd.Actions.Length == 0) return 1f;
+        actionIndex = Math.Clamp(actionIndex, 0, bmd.Actions.Length - 1);
+        var speed = bmd.Actions[actionIndex].PlaySpeed;
+        return speed <= 0f ? 1f : speed;
+    }
+
+    public bool TryGetBoneTransform(
+        BMD bmd,
+        int actionIndex,
+        float framePos,
+        int boneIndex,
+        out Transform3D transform)
+    {
+        transform = Transform3D.Identity;
+        if (bmd.Bones == null || bmd.Bones.Length == 0) return false;
+        if (boneIndex < 0 || boneIndex >= bmd.Bones.Length) return false;
+
+        var muMatrices = ComputeBoneMatrices(bmd, actionIndex, framePos);
+        if (boneIndex >= muMatrices.Length) return false;
+
+        var m = muMatrices[boneIndex];
+        var oMu = SysVector3.Transform(SysVector3.Zero, m);
+
+        var xBasisMu = SysVector3.Transform(new SysVector3(1f, 0f, 0f), m);
+        var yBasisMu = SysVector3.Transform(new SysVector3(0f, 0f, 1f), m);
+        var zBasisMu = SysVector3.Transform(new SysVector3(0f, -1f, 0f), m);
+
+        var origin = MuToGodot(oMu);
+        var axisX = MuToGodot(xBasisMu) - origin;
+        var axisY = MuToGodot(yBasisMu) - origin;
+        var axisZ = MuToGodot(zBasisMu) - origin;
+        if (axisX.LengthSquared() <= 0.000001f || axisY.LengthSquared() <= 0.000001f || axisZ.LengthSquared() <= 0.000001f)
+            return false;
+
+        var basis = new Basis(axisX.Normalized(), axisY.Normalized(), axisZ.Normalized()).Orthonormalized();
+        transform = new Transform3D(basis, origin);
+        return true;
+    }
+
+    public ArrayMesh? BuildMesh(
+        BMD bmd,
+        int actionIndex = 0,
+        float framePos = 0f,
+        ArrayMesh? targetMesh = null,
+        BMD? animationSourceBmd = null)
+    {
+        if (bmd.Meshes == null || bmd.Meshes.Length == 0) return null;
+
+        var animationBmd = animationSourceBmd ?? bmd;
+        var boneMatrices = ComputeBoneMatrices(animationBmd, actionIndex, framePos);
+
+        var arrayMesh = targetMesh ?? new ArrayMesh();
+        arrayMesh.ClearSurfaces();
+
+        for (int meshIdx = 0; meshIdx < bmd.Meshes.Length; meshIdx++)
+        {
+            var mesh = bmd.Meshes[meshIdx];
+            if (mesh.Triangles == null || mesh.Triangles.Length == 0) continue;
+
+            var st = new SurfaceTool();
+            st.Begin(Mesh.PrimitiveType.Triangles);
+
+            foreach (var tri in mesh.Triangles)
+            {
+                int vertexCount = Math.Min((int)tri.Polygon, 4);
+                if (vertexCount < 3) continue;
+
+                int[] indices = vertexCount == 3 ? new[] { 0, 1, 2 } : new[] { 0, 1, 2, 0, 2, 3 };
+
+                foreach (int idx in indices)
+                {
+                    if (idx >= vertexCount) break;
+
+                    var vertIdx = tri.VertexIndex[idx];
+                    var tcIdx = tri.TexCoordIndex[idx];
+
+                    if (vertIdx < 0 || vertIdx >= mesh.Vertices.Length) continue;
+
+                    var vert = mesh.Vertices[vertIdx];
+                    var pos = vert.Position;
+
+                    if (vert.Node >= 0 && vert.Node < boneMatrices.Length)
+                    {
+                        var boneMatrix = boneMatrices[vert.Node];
+                        pos = SysVector3.Transform(pos, boneMatrix);
+                    }
+
+                    var gdPos = MuToGodot(pos);
+
+                    if (tcIdx >= 0 && tcIdx < mesh.TexCoords.Length)
+                    {
+                        var tc = mesh.TexCoords[tcIdx];
+                        st.SetUV(new Vector2(tc.U, tc.V));
+                    }
+
+                    st.AddVertex(gdPos);
+                }
+            }
+
+            st.Index();
+            st.GenerateNormals();
+            var surfaceMesh = st.Commit();
+            if (surfaceMesh != null)
+            {
+                for (int s = 0; s < surfaceMesh.GetSurfaceCount(); s++)
+                {
+                    var arrays = surfaceMesh.SurfaceGetArrays(s);
+                    arrayMesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, arrays);
+                }
+            }
+        }
+
+        return arrayMesh.GetSurfaceCount() > 0 ? arrayMesh : null;
+    }
+
+    private static SysMatrix[] ComputeBoneMatrices(BMD bmd, int actionIndex, float framePos)
+    {
+        if (bmd.Bones == null || bmd.Bones.Length == 0) return Array.Empty<SysMatrix>();
+
+        BMDTextureAction? action = null;
+        int frame0 = 0;
+        int frame1 = 0;
+        float frameLerp = 0f;
+        bool lockPositions = false;
+
+        if (bmd.Actions != null && bmd.Actions.Length > 0)
+        {
+            actionIndex = Math.Clamp(actionIndex, 0, bmd.Actions.Length - 1);
+            action = bmd.Actions[actionIndex];
+            lockPositions = action.LockPositions;
+
+            int keyCount = Math.Max(action.NumAnimationKeys, 1);
+            int totalFrames = Math.Max(lockPositions ? keyCount - 1 : keyCount, 1);
+            float normalizedFrame = PositiveModulo(framePos, totalFrames);
+
+            frame0 = (int)MathF.Floor(normalizedFrame);
+            if (totalFrames > 1)
+            {
+                frame1 = (frame0 + 1) % totalFrames;
+                frameLerp = normalizedFrame - frame0;
+            }
+            else
+            {
+                frame1 = frame0;
+            }
+        }
+
+        var matrices = new SysMatrix[bmd.Bones.Length];
+
+        for (int i = 0; i < bmd.Bones.Length; i++)
+        {
+            var bone = bmd.Bones[i];
+            SysMatrix localMatrix = SysMatrix.Identity;
+
+            if (action != null && bone.Matrixes != null && actionIndex < bone.Matrixes.Length)
+            {
+                var boneMatrix = bone.Matrixes[actionIndex];
+                int maxFrame = Math.Min(boneMatrix.Position?.Length ?? 0, boneMatrix.Quaternion?.Length ?? 0) - 1;
+
+                if (maxFrame >= 0)
+                {
+                    int f0 = Math.Clamp(frame0, 0, maxFrame);
+                    int f1 = Math.Clamp(frame1, 0, maxFrame);
+                    float t = f0 == f1 ? 0f : frameLerp;
+
+                    var p0 = boneMatrix.Position![f0];
+                    var p1 = boneMatrix.Position![f1];
+                    var position = SysVector3.Lerp(p0, p1, t);
+
+                    var q0 = boneMatrix.Quaternion![f0];
+                    var q1 = boneMatrix.Quaternion![f1];
+                    var rotation = SysQuaternion.Normalize(SysQuaternion.Slerp(q0, q1, t));
+
+                    localMatrix = SysMatrix.CreateFromQuaternion(rotation) *
+                                  SysMatrix.CreateTranslation(position);
+
+                    if (i == 0 && lockPositions && boneMatrix.Position.Length > 0)
+                    {
+                        var rootPos = boneMatrix.Position[0];
+                        localMatrix.M41 = rootPos.X;
+                        localMatrix.M42 = rootPos.Y;
+                    }
+                }
+            }
+
+            if (bone.Parent >= 0 && bone.Parent < i)
+                matrices[i] = localMatrix * matrices[bone.Parent];
+            else
+                matrices[i] = localMatrix;
+        }
+
+        return matrices;
+    }
+
+    private static float PositiveModulo(float value, int modulo)
+    {
+        if (modulo <= 0) return 0f;
+        float m = value % modulo;
+        return m < 0f ? m + modulo : m;
+    }
+
+    /// <summary>
+    /// Φόρτωση Textures χρησιμοποιώντας τον δικό σου TextureLoader!
+    /// </summary>
+    public async Task<StandardMaterial3D[]> LoadModelTexturesAsync(string relativePath)
+    {
+        var fullPath = System.IO.Path.Combine(Constants.DataPath, relativePath);
+        if (!System.IO.File.Exists(fullPath))
+            fullPath = FindFileInsensitive(fullPath);
+
+        if (fullPath == null || !_cache.TryGetValue(fullPath, out var bmd))
+            return Array.Empty<StandardMaterial3D>();
+
+        var dir = System.IO.Path.GetDirectoryName(relativePath) ?? "";
+        var materials = new StandardMaterial3D[bmd.Meshes.Length];
+
+        for (int i = 0; i < bmd.Meshes.Length; i++)
+        {
+            var mesh = bmd.Meshes[i];
+            var material = new StandardMaterial3D();
+            material.CullMode = BaseMaterial3D.CullModeEnum.Disabled;
+
+            if (!string.IsNullOrEmpty(mesh.TexturePath))
+            {
+                // Συνδυάζουμε το φάκελο με το όνομα του texture
+                string texPath = System.IO.Path.Combine(dir, mesh.TexturePath).Replace("\\", "/");
+
+                // ΧΡΗΣΙΜΟΠΟΙΟΥΜΕ ΤΟΝ ΔΙΚΟ ΣΟΥ TEXTURELOADER
+                Texture2D tex = await TextureLoader.Instance.PrepareAndGetTexture(texPath);
+                if (tex != null)
+                {
+                    material.AlbedoTexture = tex;
+
+                    // Έλεγχος Alpha μέσω του δικού σου Script system
+                    var script = TextureLoader.Instance.GetScript(mesh.TexturePath);
+                    if (script != null)
+                    {
+                        if (script.Alpha)
+                        {
+                            material.Transparency = BaseMaterial3D.TransparencyEnum.AlphaScissor;
+                            material.AlphaScissorThreshold = 0.5f;
+                        }
+                        if (script.Bright)
+                        {
+                            material.BlendMode = BaseMaterial3D.BlendModeEnum.Add;
+                            material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
+                        }
+                    }
+                    else if (tex.HasAlpha() || texPath.EndsWith(".ozt", StringComparison.OrdinalIgnoreCase))
+                    {
+                        material.Transparency = BaseMaterial3D.TransparencyEnum.AlphaScissor;
+                        material.AlphaScissorThreshold = 0.5f;
+                    }
+                }
+            }
+
+            materials[i] = material;
+        }
+
+        return materials;
+    }
+
+    private static string? FindFileInsensitive(string fullPath)
+    {
+        var dir = System.IO.Path.GetDirectoryName(fullPath);
+        var fileName = System.IO.Path.GetFileName(fullPath);
+        if (dir == null || !System.IO.Directory.Exists(dir))
+        {
+            var parentDir = System.IO.Path.GetDirectoryName(dir);
+            var dirName = System.IO.Path.GetFileName(dir);
+            if (parentDir == null || dirName == null || !System.IO.Directory.Exists(parentDir))
+                return null;
+
+            var matchDir = System.IO.Directory.GetDirectories(parentDir)
+                .FirstOrDefault(d => string.Equals(System.IO.Path.GetFileName(d), dirName, StringComparison.OrdinalIgnoreCase));
+            if (matchDir == null) return null;
+            dir = matchDir;
+        }
+
+        var matchFile = System.IO.Directory.GetFiles(dir)
+            .FirstOrDefault(f => string.Equals(System.IO.Path.GetFileName(f), fileName, StringComparison.OrdinalIgnoreCase));
+        return matchFile;
+    }
+
+    private static Vector3 MuToGodot(SysVector3 v)
+    {
+        return new Vector3(v.X * Constants.WorldToGodot, v.Z * Constants.WorldToGodot, -v.Y * Constants.WorldToGodot);
+    }
+}

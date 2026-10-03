@@ -1,21 +1,21 @@
 [gd_scene format=3 uid="uid://ht5dxwjfdywr"]
 
-[ext_resource type="Script" uid="uid://dop3cdcn22ywe" path="res://TerrainControl.cs" id="1_a202f"]
-[ext_resource type="Script" uid="uid://c7e37a0e25q2y" path="res://FreeCamera3d.cs" id="2_noarx"]
-[ext_resource type="Script" uid="uid://cpg0u77kry8pj" path="res://ObjectControl.cs" id="4_r3fl7"]
+[ext_resource type="Script" uid="uid://dop3cdcn22ywe" path="res://TerrainControl.cs" id="1_2qbgj"]
+[ext_resource type="Script" uid="uid://c7e37a0e25q2y" path="res://FreeCamera3d.cs" id="2_w83rk"]
+[ext_resource type="Script" uid="uid://cpg0u77kry8pj" path="res://ObjectControl.cs" id="3_v7pif"]
 
 [node name="Node3D" type="Node3D" unique_id=509199155]
 
 [node name="TerrainControl" type="Node3D" parent="." unique_id=460043987]
-script = ExtResource("1_a202f")
-WorldIndex = 3
+script = ExtResource("1_2qbgj")
+WorldIndex = 1
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1660395783]
-script = ExtResource("2_noarx")
+script = ExtResource("2_w83rk")
 MoveSpeed = 1000.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=456590668]
 
 [node name="ObjectControl" type="Node3D" parent="." unique_id=1926084857]
-script = ExtResource("4_r3fl7")
-WorldIndex = 3
+script = ExtResource("3_v7pif")
+WorldIndex = 1

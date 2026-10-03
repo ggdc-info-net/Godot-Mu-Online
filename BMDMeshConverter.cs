@@ -45,16 +45,13 @@ namespace Client.Main.Utils
                         var vert = mesh.Vertices[vertIdx];
                         var pos = vert.Position;
 
-                        // Εφαρμογή Bind Pose
                         if (vert.Node >= 0 && vert.Node < boneMatrices.Length)
                         {
                             pos = SysVector3.Transform(pos, boneMatrices[vert.Node]);
                         }
 
-                        // ΠΡΟΣΟΧΗ: ΚΑΜΙΑ ΑΛΛΑΓΗ ΑΞΟΝΩΝ. Κρατάμε τα μαθηματικά του MU άθικτα!
                         Vector3 gdPos = new Vector3(pos.X * SCALE_FACTOR, pos.Y * SCALE_FACTOR, pos.Z * SCALE_FACTOR);
 
-                        // SKINNING: Λέμε στο Godot σε ποιο οστό ανήκει αυτό το Vertex (100% βάρος)
                         st.SetBones(new int[] { vert.Node, 0, 0, 0 });
                         st.SetWeights(new float[] { 1.0f, 0f, 0f, 0f });
 
@@ -75,24 +72,32 @@ namespace Client.Main.Utils
                 {
                     arrayMesh.AddSurfaceFromArrays(Mesh.PrimitiveType.Triangles, surfaceMesh.SurfaceGetArrays(0));
 
-                    // Φόρτωση Texture
                     if (!string.IsNullOrEmpty(mesh.TexturePath))
                     {
                         StandardMaterial3D material = new StandardMaterial3D();
                         material.CullMode = BaseMaterial3D.CullModeEnum.Disabled;
 
-                        // ΔΙΟΡΘΩΣΗ: Ενώνουμε τον φάκελο με το αρχείο (π.χ. "Monster" + "/" + "helmat.jpg")
                         string texPath = string.IsNullOrEmpty(textureFolder) ? mesh.TexturePath : Path.Combine(textureFolder, mesh.TexturePath).Replace("\\", "/");
                         
                         Texture2D tex = await TextureLoader.Instance.PrepareAndGetTexture(texPath);
                         if (tex != null)
                         {
                             material.AlbedoTexture = tex;
-                            var script = TextureLoader.Instance.GetScript(mesh.TexturePath);
-                            if (script != null)
+
+                            var script = TextureLoader.Instance.GetScript(texPath);
+                            var textureData = TextureLoader.Instance.Get(texPath);
+
+                            bool hasAlpha = (script != null && script.Alpha) || (textureData != null && textureData.Components == 4);
+
+                            if (hasAlpha)
                             {
-                                if (script.Alpha) material.Transparency = BaseMaterial3D.TransparencyEnum.AlphaScissor;
-                                if (script.Bright) material.BlendMode = BaseMaterial3D.BlendModeEnum.Add;
+                                material.Transparency = BaseMaterial3D.TransparencyEnum.AlphaScissor;
+                                material.AlphaScissorThreshold = 0.5f; // Ρυθμίζει το όριο κοπής της διαφάνειας
+                            }
+
+                            if (script != null && script.Bright) 
+                            {
+                                material.BlendMode = BaseMaterial3D.BlendModeEnum.Add;
                             }
                         }
                         arrayMesh.SurfaceSetMaterial(i, material);

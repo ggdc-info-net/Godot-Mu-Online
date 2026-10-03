@@ -12,7 +12,6 @@ namespace Client.Main.Utils
             Node3D root = new Node3D();
             root.Name = string.IsNullOrEmpty(bmd.Name) ? "MuCharacter" : bmd.Name;
             
-            // Το MU Online είναι Z-up. Γυρνάμε τον χαρακτήρα όρθιο
             root.RotationDegrees = new Vector3(-90, 0, 0);
 
             Skeleton3D skeleton = new Skeleton3D();
@@ -25,15 +24,12 @@ namespace Client.Main.Utils
             skeleton.AddChild(meshInstance);
             meshInstance.Skeleton = new NodePath("..");
 
-            // Πίνακας για να θυμόμαστε τα "μοναδικά" ονόματα που θα δώσουμε στο Godot
             string[] godotBoneNames = new string[bmd.Bones.Length];
 
-            // 1. Στήσιμο του Σκελετού
             for (int i = 0; i < bmd.Bones.Length; i++)
             {
                 var bone = bmd.Bones[i];
                 
-                // Δημιουργία Μοναδικού Ονόματος (Γιατί το Godot αγνοεί τα διπλότυπα!)
                 string baseName = string.IsNullOrWhiteSpace(bone.Name) ? $"Bone_{i}" : bone.Name;
                 if (baseName == "Dummy") baseName = $"Dummy_{i}";
 
@@ -44,17 +40,14 @@ namespace Client.Main.Utils
                     uniqueName = $"{baseName}_{suffix++}";
                 }
 
-                // Αποθηκεύουμε το μοναδικό όνομα και το προσθέτουμε στο Godot
                 godotBoneNames[i] = uniqueName;
                 skeleton.AddBone(uniqueName);
 
-                // Συνδέουμε με τον γονέα
                 if (bone.Parent != -1 && bone.Parent < i) 
                 {
                     skeleton.SetBoneParent(i, bone.Parent);
                 }
 
-                // Στήνουμε τη βασική πόζα
                 if (bone.Matrixes != null && bone.Matrixes.Length > 0 && bone.Matrixes[0].Position.Length > 0)
                 {
                     var pos = bone.Matrixes[0].Position[0];
@@ -67,7 +60,6 @@ namespace Client.Main.Utils
                 }
             }
 
-            // 2. Animations
             AnimationPlayer animPlayer = new AnimationPlayer();
             animPlayer.Name = "AnimationPlayer";
             root.AddChild(animPlayer);
@@ -89,7 +81,6 @@ namespace Client.Main.Utils
                     var bone = bmd.Bones[b];
                     if (bone.Matrixes == null || a >= bone.Matrixes.Length || action.NumAnimationKeys > bone.Matrixes[a].Position.Length) continue;
 
-                    // Χρησιμοποιούμε το μοναδικό όνομα που φτιάξαμε παραπάνω!
                     string trackPath = $"Skeleton3D:{godotBoneNames[b]}";
                     
                     int posTrack = anim.AddTrack(Animation.TrackType.Position3D);

@@ -1,10 +1,12 @@
-res://test.cs
-res://FreeCamera.cs
-res://TerrainControl.cs
-res://Client.Main/Content/BMDLoader.cs
-res://node_3d.tscn
+res://PlayerControl.cs
+res://CameraControl.cs
+res://Scenes/Player.tscn
 res://Shaders/WaterShader.gdshader
 res://Shaders/TileBaseShader.gdshader
 res://Shaders/TileOverlayShader.gdshader
 res://ObjectControl.cs
 res://FreeCamera3d.cs
+res://TerrainControl.cs
+res://Client.Main/Content/BMDLoader.cs
+res://MuAnimatedMeshController.cs
+res://test.cs
