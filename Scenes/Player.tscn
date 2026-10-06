@@ -1,13 +1,8 @@
 [gd_scene format=3 uid="uid://rudakmwugqjo"]
 
 [ext_resource type="Script" uid="uid://djcqqe05v6w1v" path="res://PlayerControl.cs" id="1_rpqav"]
-[ext_resource type="Script" uid="uid://c7e37a0e25q2y" path="res://FreeCamera3d.cs" id="2_kyqiw"]
 
 [node name="Player" type="Node3D" unique_id=1925251825]
 
 [node name="Node3D" type="Node3D" parent="." unique_id=1240467035]
 script = ExtResource("1_rpqav")
-
-[node name="Camera3D" type="Camera3D" parent="." unique_id=1100169544]
-script = ExtResource("2_kyqiw")
-MoveSpeed = 500.0

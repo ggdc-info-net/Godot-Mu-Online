@@ -700,24 +700,27 @@ public partial class TerrainControl : Node3D
     public TWFlags RequestTerraingFlag(int x, int y) => _terrain.TerrainWall[GetTerrainIndex(x, y)];
 
     public float GetHeight(float worldX, float worldZ)
-    {
-        int tx = Mathf.Clamp(
-            Mathf.RoundToInt(worldX / Client.Main.Constants.TERRAIN_SCALE),
-            0,
-            Client.Main.Constants.TERRAIN_SIZE - 1
-        );
+{
+    if (_backTerrainHeight == null) 
+        return 0f;
 
-        int tz = Mathf.Clamp(
-            Mathf.RoundToInt(worldZ / Client.Main.Constants.TERRAIN_SCALE),
-            0,
-            Client.Main.Constants.TERRAIN_SIZE - 1
-        );
+    int tx = Mathf.Clamp(
+        Mathf.RoundToInt(worldX / Client.Main.Constants.TERRAIN_SCALE),
+        0,
+        Client.Main.Constants.TERRAIN_SIZE - 1
+    );
 
-        int index = GetTerrainIndex(tx, tz);
+    int tz = Mathf.Clamp(
+        Mathf.RoundToInt(worldZ / Client.Main.Constants.TERRAIN_SCALE),
+        0,
+        Client.Main.Constants.TERRAIN_SIZE - 1
+    );
 
-        if (index < 0 || index >= _backTerrainHeight.Length)
-            return 0f;
+    int index = GetTerrainIndex(tx, tz);
 
-        return _backTerrainHeight[index].R * 1.5f;
-    }
+    if (index < 0 || index >= _backTerrainHeight.Length)
+        return 0f;
+
+    return _backTerrainHeight[index].R * 1.5f;
+}
 }

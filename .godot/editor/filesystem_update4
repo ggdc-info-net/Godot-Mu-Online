@@ -1,8 +1,0 @@
-res://PlayerControl.cs
-res://ObjectControl.cs
-res://FreeCamera3d.cs
-res://TerrainControl.cs
-res://Client.Main/Content/BMDLoader.cs
-res://CameraControl.cs
-res://test.cs
-res://MuAnimatedMeshController.cs
