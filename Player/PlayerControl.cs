@@ -18,7 +18,7 @@ public partial class PlayerControl : Node3D
     private List<MuAnimatedMeshController> _idleControllers = new List<MuAnimatedMeshController>();
     private List<MuAnimatedMeshController> _walkControllers = new List<MuAnimatedMeshController>();
     // --- ΜΕΤΑΒΛΗΤΕΣ ΚΙΝΗΣΗΣ ---
-    [Export] public float MoveSpeed = 500f; // Ταχύτητα κίνησης
+    [Export] public float MoveSpeed = 400f; // Ταχύτητα κίνησης
     private Queue<Vector2I> _path = new Queue<Vector2I>();
     private Vector3 _moveTarget;
     private bool _isMoving = false;
@@ -42,7 +42,7 @@ public partial class PlayerControl : Node3D
             await ToSignal(GetTree(), "process_frame");
         }
         
-        TeleportToTile(120, 120, 45f);
+        TeleportToTile(138, 138, 45f);
         _playerCamera.ResetAndUpdate();
     }
 
@@ -58,61 +58,65 @@ public partial class PlayerControl : Node3D
             "GloveClass01.bmd", 
             "BootClass01.bmd" 
         };
-        
+
+        float syncStartTime = Time.GetTicksMsec() * 0.001f;
+
         foreach (var part in parts)
-{
-    var partBmd = await _modelBuilder.LoadBmdAsync($"Player/{part}");
-    if (partBmd == null) continue;
+        {
+            var partBmd = await _modelBuilder.LoadBmdAsync($"Player/{part}");
+            if (partBmd == null) continue;
 
-    var materials = await _modelBuilder.LoadModelTexturesAsync($"Player/{part}");
+            var materials = await _modelBuilder.LoadModelTexturesAsync($"Player/{part}");
 
-    MeshInstance3D meshInst = new MeshInstance3D { Name = part.Replace(".bmd", "") };
-    AddChild(meshInst);
+            MeshInstance3D meshInst = new MeshInstance3D { Name = part.Replace(".bmd", "") };
+            AddChild(meshInst);
 
-    // --- 1. Φτιάχνουμε τον ελεγκτή για το IDLE (Στάση αναμονής = 1) ---
-    // --- 1. Φτιάχνουμε τον ελεγκτή για το IDLE ---
-    MuAnimatedMeshController idleAnim = new MuAnimatedMeshController();
-    idleAnim.Name = part.Replace(".bmd", "") + "_Idle";
-    AddChild(idleAnim);
-    
-    idleAnim.Initialize(
-        _modelBuilder,
-        partBmd,
-        materials,
-        actionIndex: 1, 
-        animationSpeed: 6.25f,     // <--- ΠΡΟΣΘΗΚΗ: Ταχύτητα Animation
-        subFrameSamples: 8,        // <--- ΠΡΟΣΘΗΚΗ: Απαλότητα (Blending)
-        animationSourceBmd: _skeletonBmd,
-        useRealtimeInterpolation: true 
-    );
-    
-    idleAnim.RegisterInstance(meshInst);
-    _idleControllers.Add(idleAnim);
+            // --- 1. Φτιάχνουμε τον ελεγκτή για το IDLE (Στάση αναμονής = 1) ---
+            // --- 1. Φτιάχνουμε τον ελεγκτή για το IDLE ---
+            MuAnimatedMeshController idleAnim = new MuAnimatedMeshController();
+            idleAnim.Name = part.Replace(".bmd", "") + "_Idle";
+            AddChild(idleAnim);
+            
+            idleAnim.Initialize(
+                _modelBuilder,
+                partBmd,
+                materials,
+                actionIndex: 1, 
+                animationSpeed: 7f,     // <--- ΠΡΟΣΘΗΚΗ: Ταχύτητα Animation
+                subFrameSamples: 8,        // <--- ΠΡΟΣΘΗΚΗ: Απαλότητα (Blending)
+                animationSourceBmd: _skeletonBmd,
+                syncStartTimeSeconds: syncStartTime,
+                useRealtimeInterpolation: true 
+            );
+            
+            idleAnim.RegisterInstance(meshInst);
+            _idleControllers.Add(idleAnim);
 
-    // --- 2. Φτιάχνουμε τον ελεγκτή για το WALK ---
-    MuAnimatedMeshController walkAnim = new MuAnimatedMeshController();
-    walkAnim.Name = part.Replace(".bmd", "") + "_Walk";
-    AddChild(walkAnim);
-    
-    walkAnim.Initialize(
-        _modelBuilder,
-        partBmd,
-        materials,
-        actionIndex: 51, 
-        animationSpeed: 6.25f,     // <--- ΠΡΟΣΘΗΚΗ: Ταχύτητα Animation
-        subFrameSamples: 8,        // <--- ΠΡΟΣΘΗΚΗ: Απαλότητα (Blending)
-        animationSourceBmd: _skeletonBmd,
-        useRealtimeInterpolation: true 
-    );
-    
-    walkAnim.RegisterInstance(meshInst);
-    walkAnim.SetExternalAnimationEnabled(false); 
-    _walkControllers.Add(walkAnim);
+            // --- 2. Φτιάχνουμε τον ελεγκτή για το WALK ---
+            MuAnimatedMeshController walkAnim = new MuAnimatedMeshController();
+            walkAnim.Name = part.Replace(".bmd", "") + "_Walk";
+            AddChild(walkAnim);
+            
+            walkAnim.Initialize(
+                _modelBuilder,
+                partBmd,
+                materials,
+                actionIndex: 50, 
+                animationSpeed: 7f,     // <--- ΠΡΟΣΘΗΚΗ: Ταχύτητα Animation
+                subFrameSamples: 8,        // <--- ΠΡΟΣΘΗΚΗ: Απαλότητα (Blending)
+                animationSourceBmd: _skeletonBmd,
+                syncStartTimeSeconds: syncStartTime,
+                useRealtimeInterpolation: true 
+            );
+            
+            walkAnim.RegisterInstance(meshInst);
+            walkAnim.SetExternalAnimationEnabled(false); 
+            _walkControllers.Add(walkAnim);
 
-    // Κρατάμε τον Idle ως αρχικό ελεγκτή
-    if (_mainAnimController == null) 
-        _mainAnimController = idleAnim;
-}
+            // Κρατάμε τον Idle ως αρχικό ελεγκτή
+            if (_mainAnimController == null) 
+                _mainAnimController = idleAnim;
+        }
 
         await EquipWeaponAsync("Item/Staff01.bmd", 33); 
     }

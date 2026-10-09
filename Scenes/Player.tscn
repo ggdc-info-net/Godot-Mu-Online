@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://rudakmwugqjo"]
 
-[ext_resource type="Script" uid="uid://djcqqe05v6w1v" path="res://PlayerControl.cs" id="1_rpqav"]
+[ext_resource type="Script" uid="uid://djcqqe05v6w1v" path="res://Player/PlayerControl.cs" id="1_rpqav"]
 
 [node name="Player" type="Node3D" unique_id=1925251825]
 
