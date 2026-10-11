@@ -1,19 +1,23 @@
 [gd_scene format=3 uid="uid://ht5dxwjfdywr"]
 
-[ext_resource type="Script" uid="uid://dop3cdcn22ywe" path="res://Terrains/TerrainControl.cs" id="1_2qbgj"]
-[ext_resource type="Script" uid="uid://cpg0u77kry8pj" path="res://Objects/ObjectControl.cs" id="3_v7pif"]
+[ext_resource type="Script" uid="uid://dop3cdcn22ywe" path="res://Scripts/TerrainControl.cs" id="1_2qbgj"]
+[ext_resource type="Script" uid="uid://cpg0u77kry8pj" path="res://Scripts/ObjectControl.cs" id="3_v7pif"]
+[ext_resource type="Script" uid="uid://ds0vihb3lm3sr" path="res://PerformanceOverlay.cs" id="4_v7pif"]
 [ext_resource type="PackedScene" uid="uid://rudakmwugqjo" path="res://Scenes/Player.tscn" id="4_w83rk"]
 
 [node name="Node3D" type="Node3D" unique_id=509199155]
 
 [node name="TerrainControl" type="Node3D" parent="." unique_id=460043987]
 script = ExtResource("1_2qbgj")
-WorldIndex = 1
+WorldIndex = 4
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=456590668]
 
 [node name="ObjectControl" type="Node3D" parent="." unique_id=1926084857]
 script = ExtResource("3_v7pif")
-WorldIndex = 1
+WorldIndex = 4
 
 [node name="Player" parent="." unique_id=1925251825 instance=ExtResource("4_w83rk")]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1269653800]
+script = ExtResource("4_v7pif")

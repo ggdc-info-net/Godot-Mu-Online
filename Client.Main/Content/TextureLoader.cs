@@ -30,8 +30,6 @@ namespace Client.Main.Content
 
         public Task<TextureData> Prepare(string path)
         {
-            GD.Print($"Prepare: {path}");
-
             if (string.IsNullOrWhiteSpace(path))
                 throw new ArgumentException("Path cannot be null or whitespace.", nameof(path));
 
@@ -47,7 +45,6 @@ namespace Client.Main.Content
 
         public async Task<Texture2D> PrepareAndGetTexture(string path)
         {
-            GD.Print($"PrepareAndGetTexture: {path}");
             await Prepare(path);
             return GetTexture(path);
         }
@@ -59,19 +56,14 @@ namespace Client.Main.Content
                 var dataPath = Path.Combine(Constants.DataPath, path);
                 string ext = Path.GetExtension(path)?.ToLowerInvariant();
 
-                GD.Print($"InternalPrepare: {dataPath} ({ext})");
-
                 if (!_readers.TryGetValue(ext, out var reader))
                 {
-                    GD.PrintErr($"Unsupported texture format: {ext}");
                     return null;
                 }
 
                 string fullPath = FindTexturePath(dataPath, ext);
                 if (fullPath == null)
                     return null;
-
-                GD.Print("fullpath: " + fullPath);
 
                 var data = await reader.Load(fullPath);
                 if (data == null)
@@ -88,7 +80,6 @@ namespace Client.Main.Content
             }
             catch (Exception e)
             {
-                GD.PrintErr($"Texture load failed: {path} → {e.Message}");
                 return null;
             }
         }
@@ -100,8 +91,6 @@ namespace Client.Main.Content
                 .Replace("reader", "");
 
             string expectedPath = Path.ChangeExtension(dataPath, expectedExt);
-
-            GD.Print("This is from FindTexturePath, expectedFilePath: " + expectedPath + "-" + " expectedExtension: " + expectedExt);
 
             string actual = GetActualPath(expectedPath);
             if (actual != null)

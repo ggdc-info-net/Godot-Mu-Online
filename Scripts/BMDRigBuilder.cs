@@ -73,7 +73,7 @@ namespace Client.Main.Utils
                 Animation anim = new Animation();
                 float fps = action.PlaySpeed > 0 ? 6f * action.PlaySpeed : 12f;
                 anim.Step = 1f / fps;
-                anim.Length = (action.NumAnimationKeys - 1) * anim.Step;
+                anim.Length = action.NumAnimationKeys * anim.Step;
                 anim.LoopMode = Animation.LoopModeEnum.Linear;
 
                 for (int b = 0; b < bmd.Bones.Length; b++)
