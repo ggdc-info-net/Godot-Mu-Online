@@ -76,6 +76,9 @@ namespace Client.Main.Utils
                     {
                         StandardMaterial3D material = new StandardMaterial3D();
                         material.CullMode = BaseMaterial3D.CullModeEnum.Disabled;
+                        material.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
+
+                        material.AlbedoColor = new Color(0.65f, 0.65f, 0.65f, 1.0f);
 
                         string texPath = string.IsNullOrEmpty(textureFolder) ? mesh.TexturePath : Path.Combine(textureFolder, mesh.TexturePath).Replace("\\", "/");
                         

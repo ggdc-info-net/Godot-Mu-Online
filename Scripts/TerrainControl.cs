@@ -306,7 +306,7 @@ public partial class TerrainControl : Node3D
 
                 Vector3 normal = _terrainNormal[index];
                 int lightIndex = Math.Min(index, _terrainLightData.Length - 1);
-                float luminosity = Mathf.Clamp(normal.Dot(Light) + 0.5f, 0f, 1f);
+                float luminosity = Mathf.Clamp(normal.Dot(Light) + 0.2f, 0f, 1f);
 
                 _backTerrainLight[index] = new Color(
                     _terrainLightData[lightIndex].R * luminosity,
@@ -484,7 +484,10 @@ public partial class TerrainControl : Node3D
                 waterMat.SetShaderParameter("_DistortionAmplitude", 0.02f);
                 waterMat.SetShaderParameter("_WaterSpeed", 0.1f);
                 waterMat.SetShaderParameter("_ScrollSpeed", new Vector2(0.1f, 0.1f));
-                waterMat.SetShaderParameter("_AlphaLayer", useAlpha);
+              
+                // Ιδανικό χρώμα νερού MU Online για να ταιριάζει απόλυτα
+                waterMat.SetShaderParameter("_WaterTint", new Color(0.84f, 0.97f, 1.08f));
+                
                 material = waterMat;
             }
             else

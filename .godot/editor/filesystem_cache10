@@ -1,5 +1,5 @@
 78098b89c88a74ebe8c20117b8754620
-::res://::1791735651
+::res://::1791739895
 FreeCamera3d.cs::CSharpScript::7028899134861026894::1790922072::0::1::::<>Camera3D<><>0<>0<><>::
 icon.svg::CompressedTexture2D::1599072942251040216::1770454533::1770454533::1::::<><><>0<>0<>a51efdd3f3d9f437ed7bc37e73a8d731<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
 PerformanceOverlay.cs::CSharpScript::8475560394110367029::1791558593::0::1::::<>CanvasLayer<><>0<>0<><>::
@@ -76,9 +76,9 @@ BMDLoader.cs::CSharpScript::6713501020392861201::1770454533::0::1::::<>Node<><>0
 ClientTextureData.cs::CSharpScript::1668134435414069036::1770454533::0::1::::<><><>0<>0<><>::
 TextureLoader.cs::CSharpScript::6458200848754077379::1791557214::0::1::::<><><>0<>0<><>::
 TextureScript.cs::CSharpScript::1043417407622517169::1770454533::0::1::::<><><>0<>0<><>::
-::res://Scenes/::1791708455
+::res://Scenes/::1791737363
 Player.tscn::PackedScene::1234680592703760560::1791706986::0::1::::<><><>0<>0<><>::uid://djcqqe05v6w1v::::res://Scripts/PlayerControl.cs
-TerrainTest.tscn::PackedScene::532373192396568421::1791708455::0::1::::<><><>0<>0<><>::uid://dop3cdcn22ywe::::res://Scripts/TerrainControl.cs<>uid://cpg0u77kry8pj::::res://Scripts/ObjectControl.cs<>uid://ds0vihb3lm3sr::::res://PerformanceOverlay.cs<>uid://rudakmwugqjo::::res://Scenes/Player.tscn
+TerrainTest.tscn::PackedScene::532373192396568421::1791737363::0::1::::<><><>0<>0<><>::uid://dop3cdcn22ywe::::res://Scripts/TerrainControl.cs<>uid://cpg0u77kry8pj::::res://Scripts/ObjectControl.cs<>uid://ds0vihb3lm3sr::::res://PerformanceOverlay.cs<>uid://rudakmwugqjo::::res://Scenes/Player.tscn
 ::res://Scripts/::1791707003
 BMDMeshConverter.cs::CSharpScript::3467663062094602170::1791023542::0::1::::<><><>0<>0<><>::
 BMDRigBuilder.cs::CSharpScript::5266829306370713971::1791723091::0::1::::<><><>0<>0<><>::
@@ -89,8 +89,8 @@ ObjectControl.cs::CSharpScript::5839615659837305883::1791734900::0::1::::<>Node3
 ObjectCullingSystem.cs::CSharpScript::7355017360373119775::1791706359::0::1::::<>Node3D<><>0<>1<><>::
 PlayerClass.cs::CSharpScript::8646895311414784342::1791211444::0::1::::<><><>0<>0<><>::
 PlayerControl.cs::CSharpScript::7796090694022337449::1791297602::0::1::::<>Node3D<><>0<>0<><>::
-TerrainControl.cs::CSharpScript::8174575336995414520::1791556533::0::1::::<>Node3D<><>0<>0<><>::
-::res://Shaders/::1791723131
-TileBaseShader.gdshader::Shader::3952058324044259395::1791723131::0::1::::<><><>0<>0<><>::
-TileOverlayShader.gdshader::Shader::5322817201162242472::1791723131::0::1::::<><><>0<>0<><>::
-WaterShader.gdshader::Shader::1310165697640751466::1791723131::0::1::::<><><>0<>0<><>::
+TerrainControl.cs::CSharpScript::8174575336995414520::1791737985::0::1::::<>Node3D<><>0<>0<><>::
+::res://Shaders/::1791737337
+TileBaseShader.gdshader::Shader::3952058324044259395::1791737185::0::1::::<><><>0<>0<><>::
+TileOverlayShader.gdshader::Shader::5322817201162242472::1791737185::0::1::::<><><>0<>0<><>::
+WaterShader.gdshader::Shader::1310165697640751466::1791737337::0::1::::<><><>0<>0<><>::
