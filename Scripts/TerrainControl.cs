@@ -92,6 +92,7 @@ public partial class TerrainControl : Node3D
 
         tileContainer.Scale = new Vector3(1, 1, -1);
         RenderTerrain();
+        //RenderTerrainWireframe();
         IsLoaded = true;
     }
 
@@ -585,4 +586,79 @@ public partial class TerrainControl : Node3D
 
         return _backTerrainHeight[index].R * 1.5f;
     }
+
+    private void RenderTerrainWireframe()
+{
+    if (_backTerrainHeight == null)
+        return;
+
+    var wireSt = new SurfaceTool();
+    wireSt.Begin(Mesh.PrimitiveType.Lines);
+
+    int blocksPerAxis = Client.Main.Constants.TERRAIN_SIZE / BlockSize;
+
+    for (int blockZ = 0; blockZ < blocksPerAxis; blockZ++)
+    {
+        for (int blockX = 0; blockX < blocksPerAxis; blockX++)
+        {
+            var block = _blockCache.GetBlock(blockX, blockZ);
+            float xStart = block.Xi;
+            float zStart = block.Zi;
+
+            for (int i = 0; i < BlockSize; i++)
+            {
+                for (int j = 0; j < BlockSize; j++)
+                {
+                    float xf = xStart + j;
+                    float zf = zStart + i;
+                    int xi = (int)xf;
+                    int zi = (int)zf;
+
+                    int idx1 = GetTerrainIndex(xi, zi);
+                    int idx2 = GetTerrainIndex(xi + 1, zi);
+                    int idx3 = GetTerrainIndex(xi + 1, zi + 1);
+                    int idx4 = GetTerrainIndex(xi, zi + 1);
+
+                    // Παίρνουμε τις κορυφές (ίδιες με το PrepareTileVertices)
+                    float h1 = idx1 >= _backTerrainHeight.Length ? 0f : _backTerrainHeight[idx1].R * 1.5f;
+                    float h2 = idx2 >= _backTerrainHeight.Length ? 0f : _backTerrainHeight[idx2].R * 1.5f;
+                    float h3 = idx3 >= _backTerrainHeight.Length ? 0f : _backTerrainHeight[idx3].R * 1.5f;
+                    float h4 = idx4 >= _backTerrainHeight.Length ? 0f : _backTerrainHeight[idx4].R * 1.5f;
+
+                    Vector3 v1 = new Vector3(xf * Client.Main.Constants.TERRAIN_SCALE, h1, zf * Client.Main.Constants.TERRAIN_SCALE);
+                    Vector3 v2 = new Vector3((xf + 1) * Client.Main.Constants.TERRAIN_SCALE, h2, zf * Client.Main.Constants.TERRAIN_SCALE);
+                    Vector3 v3 = new Vector3((xf + 1) * Client.Main.Constants.TERRAIN_SCALE, h3, (zf + 1) * Client.Main.Constants.TERRAIN_SCALE);
+                    Vector3 v4 = new Vector3(xf * Client.Main.Constants.TERRAIN_SCALE, h4, (zf + 1) * Client.Main.Constants.TERRAIN_SCALE);
+
+                    // Προσθήκη γραμμών τετραγώνου (v1->v2, v2->v3, v3->v4, v4->v1)
+                    DrawLine(wireSt, v1, v2);
+                    DrawLine(wireSt, v2, v3);
+                    DrawLine(wireSt, v3, v4);
+                    DrawLine(wireSt, v4, v1);
+                }
+            }
+        }
+    }
+
+    Mesh mesh = wireSt.Commit();
+    var mat = new StandardMaterial3D();
+    mat.AlbedoColor = Colors.WebMaroon;
+    mat.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
+
+    MeshInstance3D wireInstance = new MeshInstance3D
+    {
+        Mesh = mesh,
+        MaterialOverride = mat
+    };
+
+    tileContainer.AddChild(wireInstance);
+}
+
+private void DrawLine(SurfaceTool st, Vector3 a, Vector3 b)
+{
+    st.SetColor(Colors.White);
+    st.AddVertex(a);
+    st.SetColor(Colors.White);
+    st.AddVertex(b);
+}
 }

@@ -4,6 +4,7 @@ using Client.Data.OBJS;
 using Client.Main;
 using Godot;
 using MuGodot;
+using MuGodot.Objects.Worlds; // Βεβαιώσου ότι έχεις το using για τους κανόνες σου
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -89,15 +90,11 @@ public partial class ObjectControl : Node3D
                 
                 if (isNear)
                 {
-                    // === Η ΔΙΟΡΘΩΣΗ ΓΙΑ ΤΟ ΚΟΨΙΜΟ/ΕΠΑΝΕΚΚΙΝΗΣΗ ===
-                    // 1. Επαναφέρουμε τη λειτουργία (Inherit)
                     if (obj.Anim.ProcessMode != Node.ProcessModeEnum.Inherit)
                     {
                         obj.Anim.ProcessMode = Node.ProcessModeEnum.Inherit;
                     }
 
-                    // 2. ΠΑΙΖΕΙ ΜΟΝΟ ΑΝ ΔΕΝ ΠΑΙΖΕΙ ΗΔΗ!
-                    // Αυτό εμποδίζει το Play() να κάνει συνεχώς reset το animation
                     if (!obj.Anim.IsPlaying())
                     {
                         obj.Anim.Play("Action_0"); 
@@ -105,8 +102,6 @@ public partial class ObjectControl : Node3D
                 }
                 else
                 {
-                    // Όταν απομακρυνόμαστε, απλά το παγώνουμε (Disabled)
-                    // Η Godot κρατάει στη μνήμη το frame, οπότε δεν θα κάνει pop-in / jump-cut όταν ξαναμπεί!
                     if (obj.Anim.ProcessMode != Node.ProcessModeEnum.Disabled)
                     {
                         obj.Anim.ProcessMode = Node.ProcessModeEnum.Disabled;
@@ -125,7 +120,6 @@ public partial class ObjectControl : Node3D
         string fullPathObjectFolder = Path.Combine(baseDataPath, objectFolder);
 
         string objPath = Path.Combine(fullPathWorldFolder, $"EncTerrain{WorldIndex}.obj");
-
         if (!File.Exists(objPath)) return;
 
         OBJReader objReader = new OBJReader();
@@ -168,16 +162,31 @@ public partial class ObjectControl : Node3D
 
         await Task.WhenAll(loadTasks);
 
+        // ==========================================
+        // 1️⃣ ΒΗΜΑ 1: Παίρνουμε τους κανόνες της πίστας
+        // ==========================================
+        var worldRules = WorldObjectRulesResolver.Resolve(WorldIndex);
+
         var staticInstancesByType = new Dictionary<int, List<IMapObject>>();
         var animatedObjectsList = new List<IMapObject>();
+        var specialObjectsList = new List<IMapObject>();
 
+        // ==========================================
+        // 2️⃣ ΒΗΜΑ 2: Διαχωρισμός μέσω του IsSpecialObject
+        // ==========================================
         foreach (IMapObject mapObj in objData.Objects)
         {
             if (!_modelCache.TryGetValue(mapObj.Type, out var cachedData)) continue;
 
             bool hasAnimation = cachedData.bmd.Actions != null && cachedData.bmd.Actions.Length > 0 && cachedData.bmd.Actions[0].NumAnimationKeys > 1;
 
-            if (hasAnimation)
+            if (worldRules.IsSpecialObject(mapObj.Type))
+            {
+                specialObjectsList.Add(mapObj);
+                GD.Print($"✔ Special Object detected! Type: {mapObj.Type}");
+                GD.Print($"Object Type: {mapObj.Type}");
+            }
+            else if (hasAnimation)
             {
                 animatedObjectsList.Add(mapObj);
             }
@@ -256,15 +265,9 @@ public partial class ObjectControl : Node3D
                 var anim = animPlayer.GetAnimation("Action_0");
                 if (anim != null) 
                 {
-                    // 1. Εξαναγκασμός σε συνεχή Λούπα
                     anim.LoopMode = Animation.LoopModeEnum.Linear;
-                    
                     animPlayer.Play("Action_0");
-                    
-                    // 2. ΕΔΩ ΗΤΑΝ ΤΟ ΛΑΘΟΣ: Κανονική ταχύτητα (1.0f) για να μην "χάνει καρέ"
                     animPlayer.SpeedScale = 0.50f; 
-                    
-                    // 3. Σωστή τυχαία εκκίνηση μέσα στα όρια του animation
                     float randomStart = (float)GD.RandRange(0.0, anim.Length);
                     animPlayer.Seek(randomStart, true);
                 }
@@ -295,14 +298,41 @@ public partial class ObjectControl : Node3D
 
             animatedCount++;
             totalSpawned++;
-
-            if (mapObj.Type == 40)
-{
-    GD.Print($"[Debug] Object 40 Animation Keys: {cachedData.bmd.Actions[0].NumAnimationKeys}");
-}
         }
 
-        GD.Print($"✔ Loaded {totalSpawned} total objects for World {WorldIndex}");
+        // ==========================================
+        // 3️⃣ ΒΗΜΑ 3: Δημιουργία Special Objects & Εφαρμογή Rules/Effects
+        // ==========================================
+        int specialCount = 0;
+        foreach (var mapObj in specialObjectsList)
+        {
+            var cachedData = _modelCache[mapObj.Type];
+
+            MeshInstance3D specialInst = new MeshInstance3D();
+            specialInst.Mesh = cachedData.mesh;
+            specialInst.Name = $"SpecialObj_{mapObj.Type}_{specialCount}";
+
+            float muX = mapObj.Position.X;
+            float muY = mapObj.Position.Y;
+            float muHeight = mapObj.Position.Z;
+
+            Vector3 worldPos = new Vector3(muX, muHeight, -muY);
+            specialInst.Position = worldPos;
+            specialInst.Basis = new Basis(MuAngleToGodotQuat(mapObj.Angle)) * standUp;
+
+            float s = mapObj.Scale * 100f;
+            if (s > 0.001f) specialInst.Scale = new Vector3(s, s, s);
+
+            _objectContainer.AddChild(specialInst);
+
+            // Εφαρμογή των εφέ, φώτων ή ρυθμίσεων από το rule script της πίστας
+            worldRules.ApplyInstanceRules(mapObj.Type, specialInst);
+
+            specialCount++;
+            totalSpawned++;
+        }
+
+        GD.Print($"✔ Loaded {totalSpawned} total objects for World {WorldIndex} (Special: {specialCount}, Animated: {animatedCount})");
     }
 
     private Quaternion MuAngleToGodotQuat(System.Numerics.Vector3 angleDeg)

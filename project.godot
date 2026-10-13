@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Mu Online Clone"
-run/main_scene="uid://ht5dxwjfdywr"
+run/main_scene="uid://dg542p4m71s20"
 config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 

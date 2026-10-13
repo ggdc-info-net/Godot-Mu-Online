@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://dwx4eyrx3qe02"]
+
+[ext_resource type="Script" uid="uid://dvp1m8arrn5aq" path="res://test.cs" id="1_kqbfd"]
+[ext_resource type="Script" uid="uid://c7e37a0e25q2y" path="res://FreeCamera3d.cs" id="2_k8e88"]
+
+[node name="Node3D" type="Node3D" unique_id=502911748]
+script = ExtResource("1_kqbfd")
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1166181581]
+script = ExtResource("2_k8e88")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=19708964]
