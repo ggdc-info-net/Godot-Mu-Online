@@ -1,14 +1,16 @@
 using Godot;
 using System.Threading.Tasks;
+using Client.Main.Core.Utilities; // Για το MapDatabase
 
 public partial class MapManager : Node3D
 {
     public static MapManager Instance { get; private set; }
 
-    [Export] public short CurrentWorldIndex { get; set; } = 0;
+    [Export] public ushort CurrentWorldIndex { get; set; } = 1; // 1 = Lorencia (ή 0 ανάλογα με τα αρχεία σου)
 
     private TerrainControl _terrainControl;
     private ObjectControl _objectControl;
+    private Node _worldConfigInstance;
     private Node3D _playerInstance;
 
     public override async void _Ready()
@@ -17,21 +19,28 @@ public partial class MapManager : Node3D
         await LoadMapAsync(CurrentWorldIndex); 
     }
 
-    public async Task LoadMapAsync(short worldIndex)
+    public async Task LoadMapAsync(ushort worldIndex)
     {
         CurrentWorldIndex = worldIndex;
-        GD.Print($"[MapManager] Loading Map ID: {worldIndex}...");
+        string mapName = MapDatabase.GetMapName(worldIndex);
+        
+        GD.Print($"[MapManager] Loading Map ID: {worldIndex} ({mapName})...");
 
         ClearExistingMap();
 
+        // 1. Δημιουργία Configuration Script για τον χάρτη (π.χ. LorenciaWorld)
+        LoadWorldConfiguration(worldIndex, mapName);
+
+        // 2. Δημιουργία Terrain
         _terrainControl = new TerrainControl();
         _terrainControl.Name = "TerrainControl";
-        _terrainControl.WorldIndex = worldIndex;
+        _terrainControl.WorldIndex = (short)worldIndex;
         AddChild(_terrainControl);
 
+        // 3. Δημιουργία Objects
         _objectControl = new ObjectControl();
         _objectControl.Name = "ObjectControl";
-        _objectControl.WorldIndex = worldIndex;
+        _objectControl.WorldIndex = (short)worldIndex;
         AddChild(_objectControl);
 
         while (_terrainControl == null || !_terrainControl.IsLoaded)
@@ -39,14 +48,26 @@ public partial class MapManager : Node3D
             await ToSignal(GetTree(), "process_frame");
         }
 
+        // 4. Spawn Παίκτη με τις σωστές συντεταγμένες του χάρτη
         SpawnPlayer();
 
-        GD.Print($"[MapManager] Map {worldIndex} loaded successfully!");
+        GD.Print($"[MapManager] Successfully loaded {mapName}!");
+    }
+
+    private void LoadWorldConfiguration(ushort worldIndex, string mapName)
+    {
+        // Ανάλογα με τον χάρτη, φορτώνουμε το αντίστοιχο config script
+        if (mapName == "Lorencia")
+        {
+            _worldConfigInstance = new LorenciaWorld();
+            _worldConfigInstance.Name = "LorenciaConfig";
+            AddChild(_worldConfigInstance);
+        }
+        // Αργότερα προσθέτεις εδώ: else if (mapName == "Devias") { ... }
     }
 
     private void SpawnPlayer()
     {
-        // Φορτώνουμε τη σκηνή του παίκτη δυναμικά
         var playerScene = GD.Load<PackedScene>("res://Scenes/Player.tscn"); 
         if (playerScene != null)
         {
@@ -54,10 +75,16 @@ public partial class MapManager : Node3D
             _playerInstance.Name = "Player";
             AddChild(_playerInstance);
 
-            // Αν ο παίκτης έχει μέθοδο TeleportToTile, τον βάζουμε σε αρχικές συντεταγμένες
             if (_playerInstance is PlayerControl playerCtrl)
             {
-                playerCtrl.TeleportToTile(138, 138, 45f);
+                // Παίρνουμε το DefaultSpawnTile από το LorenciaWorld αν υπάρχει, αλλιώς default
+                Vector2I spawnTile = new Vector2I(138, 124);
+                if (_worldConfigInstance is LorenciaWorld lorenciaWorld)
+                {
+                    spawnTile = lorenciaWorld.DefaultSpawnTile;
+                }
+
+                playerCtrl.TeleportToTile(spawnTile.X, spawnTile.Y, 45f);
             }
         }
     }
@@ -74,6 +101,12 @@ public partial class MapManager : Node3D
         {
             _objectControl.QueueFree();
             _objectControl = null;
+        }
+
+        if (_worldConfigInstance != null && GodotObject.IsInstanceValid(_worldConfigInstance))
+        {
+            _worldConfigInstance.QueueFree();
+            _worldConfigInstance = null;
         }
 
         if (_playerInstance != null && GodotObject.IsInstanceValid(_playerInstance))

@@ -4,6 +4,5 @@
 
 [node name="Node3D" type="Node3D" unique_id=1194544295]
 script = ExtResource("1_31gb2")
-CurrentWorldIndex = 1
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=809167102]

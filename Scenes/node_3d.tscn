@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dx7ygs42mva0i"]
 
-[ext_resource type="Script" uid="uid://dop3cdcn22ywe" path="res://Scripts/TerrainControl.cs" id="1_okq71"]
-[ext_resource type="Script" uid="uid://cpg0u77kry8pj" path="res://Scripts/ObjectControl.cs" id="2_wosnj"]
+[ext_resource type="Script" uid="uid://dop3cdcn22ywe" path="res://Scripts/Controls/TerrainControl.cs" id="1_okq71"]
+[ext_resource type="Script" uid="uid://cpg0u77kry8pj" path="res://Scripts/Controls/ObjectControl.cs" id="2_wosnj"]
 [ext_resource type="Script" uid="uid://c7e37a0e25q2y" path="res://FreeCamera3d.cs" id="3_t3l2h"]
 
 [node name="Node3D" type="Node3D" unique_id=995617037]

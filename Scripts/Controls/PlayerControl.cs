@@ -157,8 +157,11 @@ public partial class PlayerControl : Node3D
     }
 
     public override void _Process(double delta)
-    {
-        // 1. Έλεγχος Όπλου
+    {   
+        // 1. ΠΡΩΤΑ η κίνηση του παίκτη (γιατί μπορεί να αλλάξει το AnimationState!)
+        UpdateMovement(delta);
+
+        // 2. ΜΕΤΑ ο συγχρονισμός του όπλου με το τρέχον καρέ
         if (_weaponPivot != null && _skeletonBmd != null && _mainAnimController != null)
         {
             int currentAction = _mainAnimController.ActionIndex;
@@ -168,9 +171,6 @@ public partial class PlayerControl : Node3D
                 _weaponPivot.Transform = boneTransform;
             }
         }
-
-        // 2. Ενημέρωση Κίνησης Παίκτη
-        UpdateMovement(delta);
 
         // 3. Ενημέρωση Κάμερας
         if (_playerCamera != null)
@@ -269,6 +269,10 @@ public partial class PlayerControl : Node3D
 
         var startTile = new Vector2I(startX, startY);
         var targetTile = new Vector2I(tileX, tileY);
+
+// === Η ΛΥΣΗ ΕΙΝΑΙ ΑΥΤΗ Η ΓΡΑΜΜΗ ===
+    if (startTile == targetTile) return; 
+    // ==================================
 
         var path = FindPath(startTile, targetTile);
         if (path.Count == 0 && startTile != targetTile) return;
@@ -393,7 +397,8 @@ public partial class PlayerControl : Node3D
     }
 
     private void SetAnimationState(bool moving)
-{
+    {
+        
     // Ανάλογα με το αν κινούμαστε, ανοίγουμε τους μεν και κλείνουμε τους δε
     foreach (var controller in _idleControllers)
     {

@@ -100,6 +100,7 @@ namespace Client.Main.Utils
 
                             if (script != null && script.Bright) 
                             {
+                                material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha; // Αναγκάζει τη Godot να το βάλει στο transparent pass
                                 material.BlendMode = BaseMaterial3D.BlendModeEnum.Add;
                             }
                         }

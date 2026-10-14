@@ -113,6 +113,8 @@ public partial class MuAnimatedMeshController : Node
         RefreshProcessState();
     }
 
+    
+
     public void RegisterInstance(MeshInstance3D instance)
     {
         if (instance == null)
@@ -147,6 +149,13 @@ public partial class MuAnimatedMeshController : Node
 
         _externalAnimationEnabled = enabled;
         RefreshProcessState();
+
+        if (enabled)
+        {
+            _startTimeSeconds = Time.GetTicksMsec() * 0.001f; // Ξεκινάει ομαλά από την αρχή
+            _startFrame = 0f;
+            _Process(0); 
+        }
     }
 
     public bool HasAnyVisibleTargetWithinDistance(Vector3 cameraPosition, float maxDistanceSq)

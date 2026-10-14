@@ -1,3 +1,4 @@
+res://Scripts/LorenciaWorldObjectRules.cs
 res://test.cs
 res://FreeCamera3d.cs
 res://Scripts/MapManager.cs
@@ -9,4 +10,20 @@ res://Client.Main/Content/BMDLoader.cs
 res://Scripts/MuAnimatedMeshController.cs
 res://Scripts/ObjectCullingSystem.cs
 res://Scripts/CameraControl.cs
-res://Scripts/LorenciaWorldObjectRules.cs
+res://Scenes/TerrainTest.tscn
+res://Shaders/WaterShader.gdshader
+res://Shaders/TileBaseShader.gdshader
+res://Shaders/TileOverlayShader.gdshader
+res://Scenes/Player.tscn
+res://Scenes/node_3d.tscn
+res://Scripts/Worlds/LorenciaWorld.cs
+res://Scenes/MapManager.tscn
+res://Shaders/firehik01.gdshader
+res://Scripts/Worlds/Objects/Lorencia/LorenciaWorldObjectRules.cs
+res://Scripts/Controls/PlayerControl.cs
+res://Scripts/Controls/ObjectControl.cs
+res://Scripts/Controls/TerrainControl.cs
+res://Scripts/Controls/CameraControl.cs
+res://Scripts/Controllers/ObjectCullingSystem.cs
+res://Scripts/Controllers/MuAnimatedMeshController.cs
+res://Shaders/Lorencia/firehik01.gdshader
