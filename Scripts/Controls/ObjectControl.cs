@@ -301,38 +301,71 @@ public partial class ObjectControl : Node3D
         }
 
         // ==========================================
-        // 3️⃣ ΒΗΜΑ 3: Δημιουργία Special Objects & Εφαρμογή Rules/Effects
+        // 3️⃣ ΒΗΜΑ 3: Δημιουργία Special Objects & Εφαρμογή Rules/Effects (Με υποστήριξη Animation)
         // ==========================================
         int specialCount = 0;
         foreach (var mapObj in specialObjectsList)
         {
             var cachedData = _modelCache[mapObj.Type];
+            Node3D finalNode = null;
 
-            MeshInstance3D specialInst = new MeshInstance3D();
-            specialInst.Mesh = cachedData.mesh;
-            specialInst.Name = $"SpecialObj_{mapObj.Type}_{specialCount}";
+            // Ελέγχουμε αυτόματα αν αυτό το special object έχει animation στα data του
+            bool hasAnimation = cachedData.bmd.Actions != null && cachedData.bmd.Actions.Length > 0 && cachedData.bmd.Actions[0].NumAnimationKeys > 1;
+
+            if (hasAnimation)
+            {
+                // Αν έχει animation, το χτίζουμε με τον Rig Builder για να κινείται!
+                var animatedRoot = Client.Main.Utils.BMDRigBuilder.CreateAnimatedCharacter(cachedData.bmd, cachedData.mesh);
+                
+                var animPlayer = animatedRoot.GetNodeOrNull<AnimationPlayer>("AnimationPlayer");
+                if (animPlayer != null)
+                {
+                    if (animPlayer.HasAnimation("Action_1"))
+                    {
+                        animPlayer.Play("Action_1");
+                    }
+                    else if (animPlayer.HasAnimation("Action_0"))
+                    {
+                        animPlayer.Play("Action_0");
+                    }
+                }
+                
+                finalNode = animatedRoot;
+            }
+            else
+            {
+                // Αν δεν έχει animation, παραμένει απλό MeshInstance3D όπως πριν
+                var specialInst = new MeshInstance3D();
+                specialInst.Mesh = cachedData.mesh;
+                finalNode = specialInst;
+            }
+
+            finalNode.Name = $"SpecialObj_{mapObj.Type}_{specialCount}";
 
             float muX = mapObj.Position.X;
             float muY = mapObj.Position.Y;
             float muHeight = mapObj.Position.Z;
 
             Vector3 worldPos = new Vector3(muX, muHeight, -muY);
-            specialInst.Position = worldPos;
-            specialInst.Basis = new Basis(MuAngleToGodotQuat(mapObj.Angle)) * standUp;
+            finalNode.Position = worldPos;
+            finalNode.Basis = new Basis(MuAngleToGodotQuat(mapObj.Angle)) * standUp;
 
             float s = mapObj.Scale * 100f;
-            if (s > 0.001f) specialInst.Scale = new Vector3(s, s, s);
+            if (s > 0.001f) 
+            {
+                finalNode.Scale = new Vector3(s, s, s);
+            }
 
-            _objectContainer.AddChild(specialInst);
+            _objectContainer.AddChild(finalNode);
 
             // Εφαρμογή των εφέ, φώτων ή ρυθμίσεων από το rule script της πίστας
-            worldRules.ApplyInstanceRules(mapObj.Type, specialInst);
+            // (Αν είναι rigged root, βρίσκουμε το Mesh εσωτερικά αν το χρειάζεται ο κανόνας)
+            var targetForRules = finalNode is Node3D root && root.HasNode("Mesh") ? root.GetNode<MeshInstance3D>("Mesh") : finalNode;
+            worldRules.ApplyInstanceRules(mapObj.Type, finalNode);
 
             specialCount++;
             totalSpawned++;
         }
-
-        GD.Print($"✔ Loaded {totalSpawned} total objects for World {WorldIndex} (Special: {specialCount}, Animated: {animatedCount})");
     }
 
     private Quaternion MuAngleToGodotQuat(System.Numerics.Vector3 angleDeg)

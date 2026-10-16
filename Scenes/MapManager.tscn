@@ -5,4 +5,4 @@
 [node name="Node3D" type="Node3D" unique_id=1194544295]
 script = ExtResource("1_31gb2")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=809167102]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=198212044]
