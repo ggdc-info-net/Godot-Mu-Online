@@ -192,6 +192,7 @@ namespace Client.Main.Content
             );
 
             ImageTexture texture = ImageTexture.CreateFromImage(image);
+            texture.ResourceName = Path.GetFileName(path);
             clientTexture.Texture = texture;
 
             return texture;

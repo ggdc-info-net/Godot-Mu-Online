@@ -251,72 +251,98 @@ public partial class TerrainControl : Node3D
     }
 
     private void CreateTerrainNormal()
+{
+    int sizeX = Client.Main.Constants.TERRAIN_SIZE;
+    int sizeZ = Client.Main.Constants.TERRAIN_SIZE;
+    int maxIndex = _backTerrainHeight.Length - 1;
+
+    _terrainNormal = new Vector3[sizeX * sizeZ];
+
+    for (int y = 0; y < sizeZ; y++)
     {
-        int sizeX = Client.Main.Constants.TERRAIN_SIZE;
-        int sizeZ = Client.Main.Constants.TERRAIN_SIZE;
-
-        int maxIndex = _backTerrainHeight.Length - 1;
-
-        _terrainNormal = new Vector3[Client.Main.Constants.TERRAIN_SIZE * Client.Main.Constants.TERRAIN_SIZE];
-
-        for (int z = 0; z < sizeZ; z++)
+        for (int x = 0; x < sizeX; x++)
         {
-            for (int x = 0; x < sizeX; x++)
-            {
-                int index = GetTerrainIndex(x, z);
-                if (index > maxIndex) continue; 
+            int index = GetTerrainIndex(x, y);
+            if (index > maxIndex) continue;
 
-                int x1 = Math.Min(x + 1, sizeX - 1);
-                int z1 = Math.Min(z + 1, sizeZ - 1);
+            // Παίρνουμε τα ύψη με ασφάλεια (repeat wrapping)
+            float h1 = _backTerrainHeight[GetTerrainIndexRepeat(x + 1, y)].R * 1.5f;
+            float h2 = _backTerrainHeight[GetTerrainIndexRepeat(x + 1, y + 1)].R * 1.5f;
+            float h3 = _backTerrainHeight[GetTerrainIndexRepeat(x, y + 1)].R * 1.5f;
+            float h4 = _backTerrainHeight[GetTerrainIndexRepeat(x, y)].R * 1.5f;
 
-                int i1 = Math.Min(GetTerrainIndex(x1, z), maxIndex);
-                int i2 = Math.Min(GetTerrainIndex(x1, z1), maxIndex);
-                int i3 = Math.Min(GetTerrainIndex(x, z1), maxIndex);
-                int i4 = Math.Min(index, maxIndex);
+            // Αντιστοίχιση αξόνων για το Godot (X = x, Y = ύψος, Z = y)
+            float scale = Client.Main.Constants.TERRAIN_SCALE;
+            Vector3 v1 = new Vector3((x + 1) * scale, h1, y * scale);
+            Vector3 v2 = new Vector3((x + 1) * scale, h2, (y + 1) * scale);
+            Vector3 v3 = new Vector3(x * scale, h3, (y + 1) * scale);
+            Vector3 v4 = new Vector3(x * scale, h4, y * scale);
 
-                Vector3 v1 = new Vector3(x1 * Client.Main.Constants.TERRAIN_SCALE, _backTerrainHeight[i1].R, z * Client.Main.Constants.TERRAIN_SCALE);
-                Vector3 v2 = new Vector3(x1 * Client.Main.Constants.TERRAIN_SCALE, _backTerrainHeight[i2].R, z1 * Client.Main.Constants.TERRAIN_SCALE);
-                Vector3 v3 = new Vector3(x * Client.Main.Constants.TERRAIN_SCALE, _backTerrainHeight[i3].R, z1 * Client.Main.Constants.TERRAIN_SCALE);
-                Vector3 v4 = new Vector3(x * Client.Main.Constants.TERRAIN_SCALE, _backTerrainHeight[i4].R, z * Client.Main.Constants.TERRAIN_SCALE);
+            // Υπολογισμός face normals (όπως ακριβώς στο MonoGame MathUtils.FaceNormalize)
+            Vector3 n1 = FaceNormalize(v1, v2, v3);
+            Vector3 n2 = FaceNormalize(v3, v4, v1);
 
-                Vector3 faceNormal1 = (v2 - v1).Cross(v3 - v1).Normalized();
-                Vector3 faceNormal2 = (v4 - v3).Cross(v1 - v3).Normalized();
+            _terrainNormal[index] = n1 + n2;
 
-                _terrainNormal[index] = faceNormal1 + faceNormal2;
-            }
+            Vector3 finalNormal = n1 + n2;
+if (finalNormal.Y < 0) finalNormal = -finalNormal; // Διασφάλιση ότι κοιτάζει προς τα πάνω
+_terrainNormal[index] = finalNormal.Normalized();
         }
-
-        for (int i = 0; i < _terrainNormal.Length; i++)
-            _terrainNormal[i] = _terrainNormal[i].Normalized();
     }
+
+    for (int i = 0; i < _terrainNormal.Length; i++)
+    {
+        if (_terrainNormal[i].LengthSquared() > 0.0001f)
+            _terrainNormal[i] = _terrainNormal[i].Normalized();
+        else
+            _terrainNormal[i] = Vector3.Up;
+    }
+}
+
+// Βοηθητική συνάρτηση FaceNormalize αντίστοιχη του MonoGame MathUtils
+private static Vector3 FaceNormalize(Vector3 v1, Vector3 v2, Vector3 v3)
+{
+    Vector3 n = (v2 - v1).Cross(v3 - v1);
+    return n.LengthSquared() < 0.000001f ? Vector3.Zero : n.Normalized();
+}
 
     private void CreateTerrainLight()
+{
+    int sizeX = Client.Main.Constants.TERRAIN_SIZE;
+    int sizeZ = Client.Main.Constants.TERRAIN_SIZE;
+
+    int maxIndex = Math.Min(_terrainLightData.Length, _terrainNormal.Length) - 1;
+    _backTerrainLight = new Color[_terrainNormal.Length];
+
+    // Η ακριβής κατεύθυνση φωτός του MU Online από τον C++ κώδικα:
+    // Vector(0.5f, -0.5f, 0.5f) -> Προσοχή στο coordinate system του Godot
+    Vector3 muLightDir = new Vector3(0.5f, 0.5f, -0.5f).Normalized(); 
+
+    for (int z = 0; z < sizeZ; z++)
     {
-        int sizeX = Client.Main.Constants.TERRAIN_SIZE;
-        int sizeZ = Client.Main.Constants.TERRAIN_SIZE;
-
-        int maxIndex = Math.Min(_terrainLightData.Length, _terrainNormal.Length) - 1;
-        _backTerrainLight = new Color[_terrainNormal.Length];
-
-        for (int z = 0; z < sizeZ; z++)
+        for (int x = 0; x < sizeX; x++)
         {
-            for (int x = 0; x < sizeX; x++)
-            {
-                int index = GetTerrainIndex(x, z);
-                if (index > maxIndex) continue;
+            int index = GetTerrainIndex(x, z);
+            if (index > maxIndex) continue;
 
-                Vector3 normal = _terrainNormal[index];
-                int lightIndex = Math.Min(index, _terrainLightData.Length - 1);
-                float luminosity = Mathf.Clamp(normal.Dot(Light) + 0.2f, 0f, 1f);
+            Vector3 normal = _terrainNormal[index];
+            int lightIndex = Math.Min(index, _terrainLightData.Length - 1);
 
-                _backTerrainLight[index] = new Color(
-                    _terrainLightData[lightIndex].R * luminosity,
-                    _terrainLightData[lightIndex].G * luminosity,
-                    _terrainLightData[lightIndex].B * luminosity
-                );
-            }
+            // Η ακριβής φόρμουλα του MU C++ κώδικα: DotProduct + 0.5f, clamped στο [0, 1]
+            float luminosity = Mathf.Clamp(normal.Dot(muLightDir) + 0.5f, 0f, 1f);
+
+            Color baseLight = _terrainLightData[lightIndex];
+
+            // Πολλαπλασιασμός ακριβώς όπως στο BackTerrainLight[Index] = TerrainLight[Index] * Luminosity
+            _backTerrainLight[index] = new Color(
+                baseLight.R * luminosity,
+                baseLight.G * luminosity,
+                baseLight.B * luminosity,
+                1f
+            );
         }
     }
+}
 
     private void RenderTerrain()
     {
@@ -451,7 +477,7 @@ public partial class TerrainControl : Node3D
         {
             st.SetUV(_terrainTextureCoord[i]);
             st.SetColor(_tempTerrainLights[i]);
-            st.SetNormal(normals[i]);
+            st.SetNormal(normals[i]); // Χρησιμοποιούμε το Vector3.Up για να αποφύγουμε προβλήματα με τα normals
             st.AddVertex(_tempTerrainVertices[i]);
         }
 
@@ -496,9 +522,14 @@ public partial class TerrainControl : Node3D
                 var mat = new StandardMaterial3D();
                 mat.AlbedoTexture = _textures[textureIndex];
                 mat.VertexColorUseAsAlbedo = true;
-                mat.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
+
+                mat.VertexColorIsSrgb = true;
+                mat.SpecularMode = BaseMaterial3D.SpecularModeEnum.Disabled;
+                mat.Roughness = 1.0f;
+
+                mat.ShadingMode = BaseMaterial3D.ShadingModeEnum.PerPixel;
                 mat.Transparency = useAlpha ? BaseMaterial3D.TransparencyEnum.Alpha : BaseMaterial3D.TransparencyEnum.Disabled;
-                mat.CullMode = BaseMaterial3D.CullModeEnum.Back;
+                mat.CullMode = BaseMaterial3D.CullModeEnum.Disabled; // Απενεργοποίηση culling για να εμφανίζονται και οι δύο πλευρές
                 material = mat;
             }
 
@@ -643,7 +674,7 @@ public partial class TerrainControl : Node3D
     Mesh mesh = wireSt.Commit();
     var mat = new StandardMaterial3D();
     mat.AlbedoColor = Colors.WebMaroon;
-    mat.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
+    mat.ShadingMode = BaseMaterial3D.ShadingModeEnum.PerPixel;
 
     MeshInstance3D wireInstance = new MeshInstance3D
     {

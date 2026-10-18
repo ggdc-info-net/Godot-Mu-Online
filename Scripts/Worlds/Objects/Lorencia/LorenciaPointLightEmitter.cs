@@ -72,6 +72,8 @@ public sealed partial class LorenciaPointLightEmitter : Node3D
             + MathF.Sin(t * 3.7f) * (_flickerAmplitude * 0.53f);
 
         _light.LightEnergy = _lightBaseEnergy * MathF.Max(0.6f, lum);
+
+        
     }
 
     private void Initialize()
@@ -98,11 +100,62 @@ public sealed partial class LorenciaPointLightEmitter : Node3D
             LightEnergy = profile.Energy,
             LightSpecular = 0.0f,
             ShadowEnabled = false,
-            Position = profile.LocalOffset,
-            TopLevel = false // Το κρατάμε συνδεδεμένο κανονικά στον γονέα
+            Position = profile.LocalOffset
         };
 
-        AddChild(_light);
+        // --- DEBUG: Προσθήκη ορατής μπάλας για να βρεις το κέντρο ---
+        // var debugSphere = new MeshInstance3D
+        // {
+        //     Name = "DebugCenterSphere",
+        //     Mesh = new SphereMesh { Radius = 12.0f, Height = 0.4f }
+        // };
+        // // Δίνουμε ένα έντονο υλικό (π.χ. κόκκινο ή φωσφοριζέ) για να ξεχωρίζει
+        // var mat = new StandardMaterial3D();
+        // mat.AlbedoColor = Colors.Red;
+        // mat.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
+        // debugSphere.MaterialOverride = mat;
+
+        // _light.AddChild(debugSphere);
+        // -----------------------------------------------------------
+
+        // Ψάχνουμε το Skeleton3D στον γονέα
+        Skeleton3D skeleton = null;
+        Node parent = GetParent();
+        while (parent != null)
+        {
+            skeleton = parent.GetNodeOrNull<Skeleton3D>("Skeleton3D") ?? parent as Skeleton3D;
+            if (skeleton != null) break;
+            parent = parent.GetParent();
+        }
+
+        if (skeleton != null)
+        {
+            // Βρίσκουμε το index του κόκαλου "Bone04"
+            int boneIndex = skeleton.FindBone("Bone04");
+            
+            if (boneIndex != -1)
+            {
+                var boneAttachment = new BoneAttachment3D
+                {
+                    Name = "LightBoneAttachment",
+                    BoneName = "Bone04" // Μπορούμε να βάλουμε απευθείας το όνομα!
+                };
+
+                skeleton.AddChild(boneAttachment);
+                boneAttachment.AddChild(_light);
+                _light.Position = profile.LocalOffset; // Μικρό fine-tuning αν χρειάζεται
+            }
+            else
+            {
+                // Fallback αν για κάποιο λόγο δεν το βρει
+                AddChild(_light);
+            }
+        }
+        else
+        {
+            AddChild(_light);
+        }
+
         _initialized = true;
 
         if (_flickerAmplitude <= 0f)
@@ -125,10 +178,10 @@ public sealed partial class LorenciaPointLightEmitter : Node3D
 
             // StreetLight01 (Type 90) — Σταθερό φως ψηλά στο φανάρι
             90 => new LightProfile(
-                color: new Color(1f, 0.9f, 0.7f),
-                range: 12.0f,
-                energy: 8.0f,
-                localOffset: new Vector3(0f, 4.0f, 0f),
+                color: new Color(1.0f, 0.788f, 0.392f),
+                range: 250.0f,
+                energy: 300.0f,
+                localOffset: new Vector3(0.0f, 0.0f, 0.0f),
                 flickerAmplitude: 0f),
 
             // DungeonGate01 (Type 55) — Δύο φώτα στις κολώνες δεξιά και αριστερά

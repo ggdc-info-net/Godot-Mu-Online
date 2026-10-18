@@ -76,7 +76,7 @@ namespace Client.Main.Utils
                     {
                         StandardMaterial3D material = new StandardMaterial3D();
                         material.CullMode = BaseMaterial3D.CullModeEnum.Disabled;
-                        material.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
+                        material.ShadingMode = BaseMaterial3D.ShadingModeEnum.PerPixel;
 
                         material.AlbedoColor = new Color(0.65f, 0.65f, 0.65f, 1.0f);
 
@@ -90,18 +90,40 @@ namespace Client.Main.Utils
                             var script = TextureLoader.Instance.GetScript(texPath);
                             var textureData = TextureLoader.Instance.Get(texPath);
 
-                            bool hasAlpha = (script != null && script.Alpha) || (textureData != null && textureData.Components == 4);
-
-                            if (hasAlpha)
+                            // 1. Κρυφά meshes (_h)
+                            if (script != null && script.HiddenMesh)
                             {
-                                material.Transparency = BaseMaterial3D.TransparencyEnum.AlphaScissor;
-                                material.AlphaScissorThreshold = 0.5f; // Ρυθμίζει το όριο κοπής της διαφάνειας
+                                material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
+                                material.AlbedoColor = new Color(1f, 1f, 1f, 0f);
                             }
-
-                            if (script != null && script.Bright) 
+                            // 2. Σκιές (_dc, _dt)
+                            else if (script != null && script.ShadowMesh > 0)
                             {
-                                material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha; // Αναγκάζει τη Godot να το βάλει στο transparent pass
+                                material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
+                                material.BlendMode = BaseMaterial3D.BlendModeEnum.Mix;
+                                material.DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled;
+                                material.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
+                            }
+                            // 3. Φώτα / Λάμψεις (_r)
+                            else if (script != null && script.Bright)
+                            {
+                                material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
                                 material.BlendMode = BaseMaterial3D.BlendModeEnum.Add;
+                                material.DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled;
+                                material.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
+                            }
+                            // 4. Διαφάνειες (_a ή 4 κανάλια RGBA)
+                            else if ((script != null && script.Alpha) || (textureData != null && textureData.Components == 4))
+                            {
+                                if (script != null && script.Alpha)
+                                {
+                                    material.Transparency = BaseMaterial3D.TransparencyEnum.Alpha;
+                                }
+                                else
+                                {
+                                    material.Transparency = BaseMaterial3D.TransparencyEnum.AlphaScissor;
+                                    material.AlphaScissorThreshold = 0.5f;
+                                }
                             }
                         }
                         arrayMesh.SurfaceSetMaterial(i, material);

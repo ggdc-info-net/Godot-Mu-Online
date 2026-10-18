@@ -12,7 +12,7 @@ public partial class test : Node3D
         BMDReader reader = new BMDReader();
         string modelFolder = "Object1";
         
-        string actualPath = GetActualFilePath(modelFolder, "Object151.bmd");
+        string actualPath = GetActualFilePath(modelFolder, "Object91.bmd");
         if (actualPath == null) 
         {
             GD.PrintErr("Το αρχείο δεν βρέθηκε!");
@@ -44,4 +44,6 @@ public partial class test : Node3D
         }
         return null;
     }
+
+    
 }

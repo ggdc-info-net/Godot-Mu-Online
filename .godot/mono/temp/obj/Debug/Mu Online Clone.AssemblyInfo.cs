@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Mu Online Clone")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2f8eb4b3a73743908a128be6941e7275e6836cbc")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1d1cbd671747ab9a4aaca1190f10522595084225")]
 [assembly: System.Reflection.AssemblyProductAttribute("Mu Online Clone")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Mu Online Clone")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

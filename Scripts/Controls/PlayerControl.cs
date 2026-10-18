@@ -42,7 +42,8 @@ public partial class PlayerControl : Node3D
             await ToSignal(GetTree(), "process_frame");
         }
         
-        TeleportToTile(115, 75, 45f);
+        TeleportToTile(128, 143, 45f);
+        //TeleportToTile(222, 13, 45f);
         _playerCamera.ResetAndUpdate();
     }
 

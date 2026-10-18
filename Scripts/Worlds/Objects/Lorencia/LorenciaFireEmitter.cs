@@ -60,9 +60,9 @@ public sealed partial class LorenciaFireEmitter : Node3D
         var fireLight = new OmniLight3D
         {
             Name = "CampfireLight",
-            LightColor = new Color(1.0f, 0.6f, 0.2f),
-            LightEnergy = 3.5f,
-            OmniRange = 5.0f,
+            LightColor = new Color(0.886f, 0.345f, 0.133f),
+            LightEnergy = 150f,
+            OmniRange = 150.0f,
             LightSpecular = 0.0f,
             Position = new Vector3(0, 0.6f, 0),
             RotationDegrees = new Vector3(90, 0, 0)
@@ -90,15 +90,15 @@ public sealed partial class LorenciaFireEmitter : Node3D
         Vector3 s2 = new Vector3(0.95f, 0.90f, 0.95f) * flameScale;
         Vector3 s3 = Vector3.One * flameScale;
 
-        var tween = CreateTween().SetLoops();
-        tween.TweenProperty(flameMesh, "scale", s1, t1);
-        tween.Parallel().TweenProperty(fireLight, "light_energy", 4.2f, t1);
+        // var tween = CreateTween().SetLoops();
+        // tween.TweenProperty(flameMesh, "scale", s1, t1);
+        // tween.Parallel().TweenProperty(fireLight, "light_energy", 4.2f, t1);
 
-        tween.Chain().TweenProperty(flameMesh, "scale", s2, t2);
-        tween.Parallel().TweenProperty(fireLight, "light_energy", 2.8f, t2);
+        // tween.Chain().TweenProperty(flameMesh, "scale", s2, t2);
+        // tween.Parallel().TweenProperty(fireLight, "light_energy", 2.8f, t2);
 
-        tween.Chain().TweenProperty(flameMesh, "scale", s3, t3);
-        tween.Parallel().TweenProperty(fireLight, "light_energy", 3.5f, t3);
+        // tween.Chain().TweenProperty(flameMesh, "scale", s3, t3);
+        // tween.Parallel().TweenProperty(fireLight, "light_energy", 3.5f, t3);
     }
 
     /// <summary>
@@ -113,10 +113,10 @@ public sealed partial class LorenciaFireEmitter : Node3D
             52 => (new Vector3(0f, 0f, -0.1f), 1.0f),
 
             // 50: FireLight01 (Ψηλός πυρσός)
-            50 => (new Vector3(0f, 0f, 0.7f), 0.8f),
+            50 => (new Vector3(0f, 0f, 0.95f), 0.5f),
 
             // 51: FireLight02 (Δεύτερος τύπος πυρσού)
-            51 => (new Vector3(0f, 0f, 0.65f), 0.8f),
+            51 => (new Vector3(0f, -0.3f, -0.15f), 0.3f),
 
             // 80: Bridge01 (Οι 2 φωτιές της γέφυρας)
             80 => variantIndex == 0
