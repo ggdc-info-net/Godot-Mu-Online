@@ -11,7 +11,7 @@ public partial class ObjectCullingSystem : Node3D
 
     [ExportGroup("Fog & Culling")]
     [Export] public bool EnableDistanceFogAndObjectCulling { get; set; } = true;
-    [Export] public float FogAndCullingDistance { get; set; } = 52f;
+    [Export] public float FogAndCullingDistance { get; set; } = 2000f;
     [Export] public float FogStartDistance { get; set; } = 44f;
     [Export] public float FogOpaqueBeforeCullMargin { get; set; } = 1.5f;
     [Export] public float FogDensityCurve { get; set; } = 3.2f;
@@ -19,7 +19,7 @@ public partial class ObjectCullingSystem : Node3D
     [Export] public float ObjectCullingHysteresis { get; set; } = 2f;
     [Export] public float ObjectCullingRefreshInterval { get; set; } = 0.10f;
     [Export] public bool UseFrustumObjectCulling { get; set; } = true;
-    [Export] public float FrustumCullingMargin { get; set; } = 8f;
+    [Export] public float FrustumCullingMargin { get; set; } = 250f;
     [Export] public int ObjectCullingBatchSize { get; set; } = 512;
     [Export] public int AnimationCullingBatchSize { get; set; } = 128;
     [Export] public Color DistanceFogColor { get; set; } = new Color(0.58f, 0.64f, 0.72f, 1f);

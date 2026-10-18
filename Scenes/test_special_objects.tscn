@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dvp1m8arrn5aq" path="res://test.cs" id="1_kqbfd"]
 [ext_resource type="Script" uid="uid://c7e37a0e25q2y" path="res://FreeCamera3d.cs" id="2_k8e88"]
+[ext_resource type="Script" uid="uid://ds0vihb3lm3sr" path="res://PerformanceOverlay.cs" id="3_k8e88"]
 
 [node name="Node3D" type="Node3D" unique_id=502911748]
 script = ExtResource("1_kqbfd")
@@ -10,3 +11,10 @@ script = ExtResource("1_kqbfd")
 script = ExtResource("2_k8e88")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=19708964]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1363821248]
+script = ExtResource("3_k8e88")
+
+[node name="Label" type="Label" parent="CanvasLayer" unique_id=1967138205]
+offset_right = 40.0
+offset_bottom = 23.0

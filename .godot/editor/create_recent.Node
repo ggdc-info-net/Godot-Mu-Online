@@ -1,6 +1,7 @@
+CanvasLayer
+Label
 WorldEnvironment
 Node
 DirectionalLight3D
 Camera3D
-CanvasLayer
 Node3D

@@ -1,6 +1,10 @@
 [gd_scene format=3 uid="uid://dg542p4m71s20"]
 
 [ext_resource type="Script" uid="uid://dsfd04yoe1dgo" path="res://Scripts/MapManager.cs" id="1_31gb2"]
+[ext_resource type="Script" uid="uid://ds0vihb3lm3sr" path="res://PerformanceOverlay.cs" id="2_phkka"]
 
 [node name="Node3D" type="Node3D" unique_id=1194544295]
 script = ExtResource("1_31gb2")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1823863548]
+script = ExtResource("2_phkka")
