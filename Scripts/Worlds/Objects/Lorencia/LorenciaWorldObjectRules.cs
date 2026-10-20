@@ -11,7 +11,7 @@ public sealed class LorenciaWorldObjectRules : IWorldObjectRules
     public bool IsSpecialObject(short type)
     {
         // 50, 51: FireLight | 52: Bonfire | 55: DungeonGate | 80: Bridge | 90: StreetLight | 150: Candle
-        return type is 50 or 51 or 52 or 55 or 80 or 90 or 133 or 150 or 98 or 122 or 117 or 133 or 119 or 105;
+        return type is 50 or 51 or 52 or 55 or 80 or 90 or 133 or 150 or 98 or 122 or 117 or 133 or 119 or 105 or 69;
     }
 
 
@@ -36,7 +36,7 @@ public sealed class LorenciaWorldObjectRules : IWorldObjectRules
                 break;
 
             // Γέφυρα με 2 φωτιές
-            case 80:
+            case 80 or 69:
                 LorenciaFireEmitter.AttachTo(instanceNode, type, variantIndex: 0, nodeName: "LorenciaBridgeFireA");
                 LorenciaFireEmitter.AttachTo(instanceNode, type, variantIndex: 1, nodeName: "LorenciaBridgeFireB");
                 break;
@@ -56,6 +56,7 @@ public sealed class LorenciaWorldObjectRules : IWorldObjectRules
 
             case 150:
                 LorenciaPointLightEmitter.AttachTo(instanceNode, type);
+                LorenciaSurfaceFixer.ApplyTo(instanceNode, type);
                 break;
 
             case 98 or 122 or 117 or 119 or 105:

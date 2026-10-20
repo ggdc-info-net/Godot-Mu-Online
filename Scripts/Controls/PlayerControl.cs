@@ -43,7 +43,7 @@ public partial class PlayerControl : Node3D
         }
         
         TeleportToTile(128, 143, 45f);
-        //TeleportToTile(222, 13, 45f);
+        //TeleportToTile(236, 13, 45f);
         _playerCamera.ResetAndUpdate();
     }
 

@@ -5,7 +5,6 @@ namespace MuGodot.Objects.Worlds.Lorencia;
 
 public sealed partial class LorenciaFireEmitter : Node3D
 {
-    // 1. Τα ΔΙΚΑ ΣΟΥ Shared resources που δουλεύουν 100%
     private static readonly Shader FireShader = GD.Load<Shader>("res://Shaders/Lorencia/firehik01.gdshader");
     private static readonly ShaderMaterial SharedFlameMaterial = new() { Shader = FireShader };
     private static readonly QuadMesh SharedFlameQuad = new() { Size = new Vector2(0.75f, 0.9f) };
@@ -44,10 +43,9 @@ public sealed partial class LorenciaFireEmitter : Node3D
             LoadFireTextureOnceAsync("Effect/firehik01.jpg");
         }
 
-        // Παίρνουμε την ακριβή τοπική θέση και κλίμακα για το συγκεκριμένο αντικείμενο
         var (anchorPos, flameScale) = GetFireSettings(SourceType, VariantIndex);
 
-        // 1. Ο ΔΙΟΡΘΩΤΗΣ ΑΞΟΝΩΝ (Ακριβώς όπως στον κώδικά σου)
+        // 1. Ο ΔΙΟΡΘΩΤΗΣ ΑΞΟΝΩΝ
         var pivot = new Node3D 
         { 
             Name = "UprightPivot",
@@ -56,7 +54,7 @@ public sealed partial class LorenciaFireEmitter : Node3D
         };
         AddChild(pivot);
 
-        // 2. Το φως
+        // 2. Το φως (Βάση: 150f)
         var fireLight = new OmniLight3D
         {
             Name = "CampfireLight",
@@ -69,7 +67,7 @@ public sealed partial class LorenciaFireEmitter : Node3D
         };
         pivot.AddChild(fireLight);
 
-        // 3. Η Φλόγα (με το σωστό scale ανάλογα με το αντικείμενο)
+        // 3. Η Φλόγα
         var flameMesh = new MeshInstance3D
         {
             Name = "RealFlame",
@@ -81,50 +79,41 @@ public sealed partial class LorenciaFireEmitter : Node3D
         };
         pivot.AddChild(flameMesh);
 
-        // 4. Το Tween Animation
-        float t1 = (float)GD.RandRange(0.35, 0.45);
+        // 4. Το Tween Animation (Ενεργό & προσαρμοσμένο στα 150f energy)
+        float t1 = (float)GD.RandRange(0.30, 0.40);
         float t2 = (float)GD.RandRange(0.25, 0.35);
         float t3 = (float)GD.RandRange(0.30, 0.40);
 
-        Vector3 s1 = new Vector3(1.05f, 1.15f, 1.05f) * flameScale;
-        Vector3 s2 = new Vector3(0.95f, 0.90f, 0.95f) * flameScale;
+        Vector3 s1 = new Vector3(1.08f, 1.15f, 1.08f) * flameScale;
+        Vector3 s2 = new Vector3(0.92f, 0.88f, 0.92f) * flameScale;
         Vector3 s3 = Vector3.One * flameScale;
 
-        // var tween = CreateTween().SetLoops();
-        // tween.TweenProperty(flameMesh, "scale", s1, t1);
-        // tween.Parallel().TweenProperty(fireLight, "light_energy", 4.2f, t1);
+        var tween = CreateTween().SetLoops();
+        
+        tween.TweenProperty(flameMesh, "scale", s1, t1);
+        tween.Parallel().TweenProperty(fireLight, "light_energy", 165.0f, t1); // Ανεβαίνει λίγο
 
-        // tween.Chain().TweenProperty(flameMesh, "scale", s2, t2);
-        // tween.Parallel().TweenProperty(fireLight, "light_energy", 2.8f, t2);
+        tween.Chain().TweenProperty(flameMesh, "scale", s2, t2);
+        tween.Parallel().TweenProperty(fireLight, "light_energy", 135.0f, t2); // Πέφτει λίγο
 
-        // tween.Chain().TweenProperty(flameMesh, "scale", s3, t3);
-        // tween.Parallel().TweenProperty(fireLight, "light_energy", 3.5f, t3);
+        tween.Chain().TweenProperty(flameMesh, "scale", s3, t3);
+        tween.Parallel().TweenProperty(fireLight, "light_energy", 150.0f, t3); // Επιστρέφει στη βάση
     }
 
-    /// <summary>
-    /// Εδώ ορίζουμε τη θέση του pivot και το μέγεθος της φλόγας για κάθε τύπο αντικειμένου.
-    /// (Στο σύστημα του ObjectControl: X = Δεξιά/Αριστερά, Y = Μπροστά/Πίσω, Z = Ύψος)
-    /// </summary>
     private static (Vector3 position, float scale) GetFireSettings(short type, int variantIndex)
     {
         return type switch
         {
-            // 52: Bonfire01 (Η φωτιά στο έδαφος) -> Θέση (0,0,0), Κανονικό μέγεθος (1.0)
             52 => (new Vector3(0f, 0f, -0.1f), 1.0f),
-
-            // 50: FireLight01 (Ψηλός πυρσός)
             50 => (new Vector3(0f, 0f, 0.95f), 0.5f),
-
-            // 51: FireLight02 (Δεύτερος τύπος πυρσού)
             51 => (new Vector3(0f, -0.3f, -0.15f), 0.3f),
-
-            // 80: Bridge01 (Οι 2 φωτιές της γέφυρας)
             80 => variantIndex == 0
-                ? (new Vector3(1.0f, 2.05f, -0.5f), 0.9f)  // Φωτιά Α
-                : (new Vector3(1.0f, -2.15f, -0.5f), 0.9f), // Φωτιά Β
-
+                ? (new Vector3(1.0f, 2.05f, -0.5f), 0.9f)
+                : (new Vector3(1.0f, -2.15f, -0.5f), 0.9f),
+            69 => variantIndex == 0
+                ? (new Vector3(1.2f, -0.5f, 2.0f), 0.2f)  // Φωτιά Α
+                : (new Vector3(-1.5f, -0.5f, 2.0f), 0.2f), // Φωτιά Β
             150 => (new Vector3(0f, 0f, 0.3f), 0.2f),
-            
             _ => (Vector3.Zero, 1.0f)
         };
     }
