@@ -692,4 +692,43 @@ private void DrawLine(SurfaceTool st, Vector3 a, Vector3 b)
     st.SetColor(Colors.White);
     st.AddVertex(b);
 }
+public float GetHeightInterpolated(float worldX, float worldZ)
+{
+    if (_backTerrainHeight == null)
+        return 0f;
+
+    float scale = Client.Main.Constants.TERRAIN_SCALE;
+    float x = worldX / scale;
+    float z = worldZ / scale;
+
+    int size = Client.Main.Constants.TERRAIN_SIZE;
+    x = Mathf.Clamp(x, 0f, size - 1.001f);
+    z = Mathf.Clamp(z, 0f, size - 1.001f);
+
+    int x0 = (int)MathF.Floor(x);
+    int z0 = (int)MathF.Floor(z);
+    int x1 = Math.Min(x0 + 1, size - 1);
+    int z1 = Math.Min(z0 + 1, size - 1);
+
+    float tx = x - x0;
+    float tz = z - z0;
+
+    float h00 = GetHeightRaw(x0, z0);
+    float h10 = GetHeightRaw(x1, z0);
+    float h11 = GetHeightRaw(x1, z1);
+    float h01 = GetHeightRaw(x0, z1);
+
+    float h0 = Mathf.Lerp(h00, h10, tx);
+    float h1 = Mathf.Lerp(h01, h11, tx);
+    return Mathf.Lerp(h0, h1, tz);
+}
+
+private float GetHeightRaw(int x, int z)
+{
+    int index = GetTerrainIndex(x, z);
+    if (_backTerrainHeight == null || index < 0 || index >= _backTerrainHeight.Length)
+        return 0f;
+
+    return _backTerrainHeight[index].R * 1.5f;
+}
 }

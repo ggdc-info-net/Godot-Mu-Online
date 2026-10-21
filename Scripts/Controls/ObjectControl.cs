@@ -5,6 +5,7 @@ using Client.Main;
 using Godot;
 using MuGodot;
 using MuGodot.Objects.Worlds; // Βεβαιώσου ότι έχεις το using για τους κανόνες σου
+using MuGodot.Objects.Worlds.Lorencia;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -29,32 +30,63 @@ public partial class ObjectControl : Node3D
         public Vector3 Pos;
     }
     private List<AnimObj> _animatedObjects = new List<AnimObj>();
-
+    private LorenciaHouseOcclusionSystem _occlusionSystem;
+    
     public override async void _Ready()
+{
+    Instance = this;
+    _objectContainer = new Node3D();
+    _objectContainer.Name = "ObjectsContainer";
+    AddChild(_objectContainer);
+
+    _cullingSystem = GetNodeOrNull<ObjectCullingSystem>("../ObjectCullingSystem");
+    if (_cullingSystem == null)
     {
-        Instance = this;
-        _objectContainer = new Node3D();
-        _objectContainer.Name = "ObjectsContainer";
-        AddChild(_objectContainer);
+        _cullingSystem = new ObjectCullingSystem();
+        _cullingSystem.Name = "ObjectCullingSystem";
+        GetParent().CallDeferred("add_child", _cullingSystem);
+    }
 
-        _cullingSystem = GetNodeOrNull<ObjectCullingSystem>("../ObjectCullingSystem");
-        if (_cullingSystem == null)
+    // --- 2. ΠΡΟΣΘΗΚΗ ΤΟΥ OCCLUSION SYSTEM ---
+    _occlusionSystem = GetNodeOrNull<LorenciaHouseOcclusionSystem>("../LorenciaHouseOcclusionSystem");
+    if (_occlusionSystem == null)
+    {
+        _occlusionSystem = new LorenciaHouseOcclusionSystem();
+        _occlusionSystem.Name = "LorenciaHouseOcclusionSystem";
+        GetParent().CallDeferred("add_child", _occlusionSystem);
+    }
+
+    // Ορίζουμε πώς θα βρίσκει τη θέση του παίκτη. 
+    // (Εδώ χρησιμοποιούμε την κάμερα ή μπορείς να βάλεις τη θέση του Player σου αν τον έχεις αποθηκευμένο κάπου)
+    _occlusionSystem.Initialize(() => {
+        var player = GetTree().CurrentScene.GetNodeOrNull<Node3D>("Player"); // ή όπως αλλοιώς τον έχεις ονομάσει
+        return player != null ? player.GlobalPosition : Vector3.Zero;
+    });
+
+    _camera = GetViewport().GetCamera3D();
+    await LoadObjectsAsync();
+    
+    if (_camera != null && _cullingSystem != null)
+    {
+        _cullingSystem.Initialize(_camera);
+        _cullingSystem.RebuildCaches(_objectContainer);
+    }
+
+    // --- 3. ΚΛΗΣΗ ΤΟΥ REBUILD CACHES ΓΙΑ ΤΟΥΣ ΤΟΙΧΟΥΣ/ΣΤΕΓΕΣ ---
+    if (_occlusionSystem != null)
+    {
+        _occlusionSystem.RebuildCaches(_objectContainer, WorldIndex);
+    }
+
+    IsLoaded = true;
+}
+
+    public void SetPlayerPositionSource(Func<Vector3> getPos)
+    {
+        if (_occlusionSystem != null)
         {
-            _cullingSystem = new ObjectCullingSystem();
-            _cullingSystem.Name = "ObjectCullingSystem";
-            GetParent().CallDeferred("add_child", _cullingSystem);
+            _occlusionSystem.Initialize(getPos);
         }
-
-        _camera = GetViewport().GetCamera3D();
-        await LoadObjectsAsync();
-        
-        if (_camera != null && _cullingSystem != null)
-        {
-            _cullingSystem.Initialize(_camera);
-            _cullingSystem.RebuildCaches(_objectContainer);
-        }
-
-        IsLoaded = true;
     }
 
     public override void _Process(double delta)
@@ -69,6 +101,12 @@ public partial class ObjectControl : Node3D
             }
         }
         
+        // --- 3. UPDATE ΤΟΥ OCCLUSION SYSTEM ΚΑΘΕ FRAME ---
+    if (_occlusionSystem != null)
+    {
+        _occlusionSystem.UpdateOcclusion(delta, WorldIndex, IsLoaded);
+    }
+
         if (_camera != null)
         {
             Vector3 camPos = _camera.GlobalPosition;

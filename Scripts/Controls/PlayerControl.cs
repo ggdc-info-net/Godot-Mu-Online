@@ -30,7 +30,7 @@ public partial class PlayerControl : Node3D
 
         _modelBuilder = new MuModelBuilder();
         await SpawnAsync();
-        
+    
         // Setup Κάμερας
         _playerCamera = new CameraControl { Name = "MainCamera" };
         GetParent().AddChild(_playerCamera); 
@@ -45,6 +45,11 @@ public partial class PlayerControl : Node3D
         TeleportToTile(128, 143, 45f);
         //TeleportToTile(236, 13, 45f);
         _playerCamera.ResetAndUpdate();
+
+        if (ObjectControl.Instance != null)
+    {
+        ObjectControl.Instance.SetPlayerPositionSource(() => this.GlobalPosition);
+    }
     }
 
     public async Task SpawnAsync()

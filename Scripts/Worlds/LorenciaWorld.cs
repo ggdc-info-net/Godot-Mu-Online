@@ -1,10 +1,11 @@
 using Godot;
+using MuGodot.Objects.Worlds.Lorencia;
 
-public partial class LorenciaWorld : Node
+public partial class LorenciaWorld : Node3D
 {
     [Export] public string WorldName { get; set; } = "Lorencia";
-    [Export] public string BackgroundMusicPath { get; set; } = @"F:\Program Files\MuCloneData\Data\Music\MuTheme.mp3"; // .mp3 αρχείο
-    [Export] public string AmbientSoundPath { get; set; } = @"F:\Program Files\MuCloneData\Data\Sound\aBird1.wav";    // .wav αρχείο
+    [Export] public string BackgroundMusicPath { get; set; } = @"F:\Program Files\MuCloneData\Data\Music\MuTheme.mp3";
+    [Export] public string AmbientSoundPath { get; set; } = @"F:\Program Files\MuCloneData\Data\Sound\aBird1.wav";
     [Export] public Vector2I DefaultSpawnTile { get; set; } = new Vector2I(138, 124);
 
     private AudioStreamPlayer _musicPlayer;
@@ -14,23 +15,68 @@ public partial class LorenciaWorld : Node
     private double _nextAmbientInterval = 15.0;
     private RandomNumberGenerator _rng = new RandomNumberGenerator();
 
-    public override void _Ready()
+    private LorenciaAmbientManager _ambientManager;
+    private Camera3D _camera;
+
+    public override async void _Ready()
     {
+        GD.Print("[LorenciaWorld] Ready called! Initializing Lorencia world...");
+
         _musicPlayer = new AudioStreamPlayer { Name = "MusicPlayer" };
         _ambientPlayer = new AudioStreamPlayer { Name = "AmbientPlayer" };
         AddChild(_musicPlayer);
         AddChild(_ambientPlayer);
 
-        // 1. Φόρτωση και συνεχές loop για το MP3 της μουσικής
         PlayExternalMP3(_musicPlayer, BackgroundMusicPath);
-
-        // 2. Προετοιμασία για το τυχαίο .wav ambient
         PrepareAmbient(_ambientPlayer, AmbientSoundPath);
         ResetAmbientTimer();
+
+        // Περιμένουμε μέχρι να φορτώσει και να γίνει διαθέσιμο το TerrainControl.Instance
+        int timeout = 50; // Ασφάλεια για να μην κολλήσει σε infinite loop
+        while (TerrainControl.Instance == null && timeout > 0)
+        {
+            await ToSignal(GetTree().CreateTimer(0.1f), "timeout");
+            timeout--;
+        }
+
+        if (TerrainControl.Instance == null)
+        {
+            GD.PrintErr("[LorenciaWorld] ERROR: TerrainControl.Instance timed out and is still NULL!");
+            return;
+        }
+
+        GD.Print("[LorenciaWorld] TerrainControl.Instance found successfully.");
+
+        // Δημιουργία και Αρχικοποίηση του Ambient Manager
+        _ambientManager = new LorenciaAmbientManager();
+        _ambientManager.Name = "LorenciaAmbientManager";
+        AddChild(_ambientManager);
+
+        _ambientManager.Initialize(TerrainControl.Instance);
+
+        await _ambientManager.ConfigureForWorldAsync(1, this, limitEffects: false);
+        GD.Print("[LorenciaWorld] AmbientManager configuration completed.");
     }
 
     public override void _Process(double delta)
     {
+        if (_camera == null)
+        {
+            _camera = GetViewport().GetCamera3D();
+            if (_camera != null)
+            {
+                GD.Print($"[LorenciaWorld] Camera found: {_camera.Name}");
+            }
+        }
+
+        if (_camera != null && _ambientManager != null)
+        {
+            _ambientManager.Update(delta, _camera.GlobalPosition);
+        }
+
+        // --------------------------------------------------
+        // Υπάρχον Audio Logic για το Ambient Sound
+        // --------------------------------------------------
         if (_ambientPlayer == null || _ambientPlayer.Stream == null) return;
 
         if (!_ambientPlayer.Playing)
@@ -56,10 +102,9 @@ public partial class LorenciaWorld : Node
         try
         {
             byte[] fileBytes = System.IO.File.ReadAllBytes(filePath);
-            
             var mp3Stream = new AudioStreamMP3();
             mp3Stream.Data = fileBytes;
-            mp3Stream.Loop = true; // Το MP3 υποστηρίζει εγγενές looping στη Godot!
+            mp3Stream.Loop = true;
 
             player.Stream = mp3Stream;
             player.Play();

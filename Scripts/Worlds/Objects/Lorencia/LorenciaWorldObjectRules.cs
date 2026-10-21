@@ -11,7 +11,7 @@ public sealed class LorenciaWorldObjectRules : IWorldObjectRules
     public bool IsSpecialObject(short type)
     {
         // 50, 51: FireLight | 52: Bonfire | 55: DungeonGate | 80: Bridge | 90: StreetLight | 150: Candle
-        return type is 50 or 51 or 52 or 55 or 80 or 90 or 133 or 150 or 98 or 122 or 117 or 133 or 119 or 105 or 69;
+        return type is 50 or 51 or 52 or 55 or 80 or 90 or 133 or 150 or 98 or 122 or 117 or 133 or 119 or 105 or 69 or 121 or 123 or 124 or 125 or 126;
     }
 
 
@@ -59,7 +59,7 @@ public sealed class LorenciaWorldObjectRules : IWorldObjectRules
                 LorenciaSurfaceFixer.ApplyTo(instanceNode, type);
                 break;
 
-            case 98 or 122 or 117 or 119 or 105:
+            case 98 or 117 or 119 or 105:
                 LorenciaSurfaceFixer.ApplyTo(instanceNode, type);
                 break;
         }

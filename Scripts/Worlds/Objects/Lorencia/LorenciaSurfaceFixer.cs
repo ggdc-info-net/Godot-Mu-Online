@@ -15,7 +15,7 @@ public static class LorenciaSurfaceFixer
 
         switch (sourceType)
         {
-            case 98 or 122 or 90 or 117 or 119 or 105 or 150: 
+            case 98 or 90 or 117 or 119 or 105 or 150: 
                 FixCarriageSurfaces(meshInst);
                 break;
         }

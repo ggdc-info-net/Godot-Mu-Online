@@ -60,7 +60,16 @@ public partial class ObjectCullingSystem : Node3D
 
             if (child is Node3D node3D)
             {
-                string name = node3D.Name.ToString();
+                                string name = node3D.Name.ToString();
+
+
+                // ΠΡΟΣΘΗΚΗ: Αγνοούμε τα πουλιά και τα φύλλα για να μην τα κρύβει το culling
+                if (name.StartsWith("Bird_", StringComparison.Ordinal) ||
+                    name.StartsWith("Leaf_", StringComparison.Ordinal))
+                {
+                    continue;
+                }
+
                 // Πιάνουμε Chunks (MultiMeshInstance3D), Special Objects και Animated Objects
                 if (name.StartsWith("Obj_", StringComparison.Ordinal) ||
                     name.StartsWith("SpecialObj_", StringComparison.Ordinal) ||
