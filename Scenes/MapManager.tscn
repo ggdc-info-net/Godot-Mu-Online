@@ -5,6 +5,7 @@
 
 [node name="Node3D" type="Node3D" unique_id=1194544295]
 script = ExtResource("1_31gb2")
+CurrentWorldIndex = 2
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1823863548]
 script = ExtResource("2_phkka")

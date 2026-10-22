@@ -1,6 +1,7 @@
 using Godot;
 using System.Threading.Tasks;
-using Client.Main.Core.Utilities; // Για το MapDatabase
+using Client.Main.Core.Utilities;
+using MuGodot; // Για το MapDatabase
 
 public partial class MapManager : Node3D
 {
@@ -12,6 +13,8 @@ public partial class MapManager : Node3D
     private ObjectControl _objectControl;
     private Node _worldConfigInstance;
     private Node3D _playerInstance;
+    private MuGrassRenderer _grassRenderer;
+    private GrassControl _grassControl;
 
     public override async void _Ready()
     {
@@ -20,39 +23,46 @@ public partial class MapManager : Node3D
     }
 
     public async Task LoadMapAsync(ushort worldIndex)
+{
+    CurrentWorldIndex = worldIndex;
+    string mapName = MapDatabase.GetMapName(worldIndex);
+    
+    GD.Print($"[MapManager] Loading Map ID: {worldIndex} ({mapName})...");
+
+    ClearExistingMap();
+
+    // 1. Δημιουργία Configuration Script για τον χάρτη
+    LoadWorldConfiguration(worldIndex, mapName);
+
+    // 2. Δημιουργία Terrain
+    _terrainControl = new TerrainControl();
+    _terrainControl.Name = "TerrainControl";
+    _terrainControl.WorldIndex = (short)worldIndex;
+    AddChild(_terrainControl);
+
+    // 3. Δημιουργία Objects
+    _objectControl = new ObjectControl();
+    _objectControl.Name = "ObjectControl";
+    _objectControl.WorldIndex = (short)worldIndex;
+    AddChild(_objectControl);
+
+    // 📌 ΠΕΡΙΜΕΝΟΥΜΕ ΝΑ ΦΟΡΤΩΣΕΙ ΠΛΗΡΩΣ ΤO TERRAIN
+    while (_terrainControl == null || !_terrainControl.IsLoaded)
     {
-        CurrentWorldIndex = worldIndex;
-        string mapName = MapDatabase.GetMapName(worldIndex);
-        
-        GD.Print($"[MapManager] Loading Map ID: {worldIndex} ({mapName})...");
-
-        ClearExistingMap();
-
-        // 1. Δημιουργία Configuration Script για τον χάρτη (π.χ. LorenciaWorld)
-        LoadWorldConfiguration(worldIndex, mapName);
-
-        // 2. Δημιουργία Terrain
-        _terrainControl = new TerrainControl();
-        _terrainControl.Name = "TerrainControl";
-        _terrainControl.WorldIndex = (short)worldIndex;
-        AddChild(_terrainControl);
-
-        // 3. Δημιουργία Objects
-        _objectControl = new ObjectControl();
-        _objectControl.Name = "ObjectControl";
-        _objectControl.WorldIndex = (short)worldIndex;
-        AddChild(_objectControl);
-
-        while (_terrainControl == null || !_terrainControl.IsLoaded)
-        {
-            await ToSignal(GetTree(), "process_frame");
-        }
-
-        // 4. Spawn Παίκτη με τις σωστές συντεταγμένες του χάρτη
-        SpawnPlayer();
-
-        GD.Print($"[MapManager] Successfully loaded {mapName}!");
+        await ToSignal(GetTree(), "process_frame");
     }
+
+    // 4. Τώρα που το terrain είναι έτοιμο, δημιουργούμε με ασφάλεια το GrassControl
+    _grassControl = new GrassControl();
+    _grassControl.Name = "GrassControl";
+    _grassControl.WorldIndex = (short)worldIndex;
+    AddChild(_grassControl);
+
+    // 5. Spawn Παίκτη
+    SpawnPlayer();
+
+    GD.Print($"[MapManager] Successfully loaded {mapName}!");
+}
 
     private void LoadWorldConfiguration(ushort worldIndex, string mapName)
     {
@@ -114,5 +124,11 @@ public partial class MapManager : Node3D
             _playerInstance.QueueFree();
             _playerInstance = null;
         }
-    }
+
+        if (_grassControl != null && GodotObject.IsInstanceValid(_grassControl))
+        {
+            _grassControl.Clear();
+            _grassControl = null;
+        }
+            }
 }

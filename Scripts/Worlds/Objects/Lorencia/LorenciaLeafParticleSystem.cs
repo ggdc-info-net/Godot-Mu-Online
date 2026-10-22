@@ -13,27 +13,6 @@ namespace MuGodot.Objects.Worlds.Lorencia;
 /// </summary>
 public sealed class LorenciaLeafParticleSystem
 {
-    private static readonly Shader LeafShader = new()
-    {
-        Code = @"
-shader_type spatial;
-render_mode cull_disabled, blend_mix, depth_prepass_alpha, unshaded;
-
-uniform sampler2D leaf_texture : source_color, filter_linear_mipmap, repeat_disable;
-uniform float alpha_cutoff = 0.16;
-
-void fragment()
-{
-    vec4 tex = texture(leaf_texture, UV);
-    if (tex.a < alpha_cutoff)
-        discard;
-
-    ALBEDO = tex.rgb * COLOR.rgb;
-    ALPHA = tex.a * COLOR.a;
-}
-"
-    };
-
     private const float MU_TO_GODOT = Client.Data.Constants.WorldToGodot;
 
     private static float ToGodot(float mu) => mu * MU_TO_GODOT;
@@ -90,6 +69,8 @@ void fragment()
     public float AlphaCutoff { get; set; } = 0.16f;
     public string TexturePath { get; set; } = "World1/leaf01.OZT";
 
+    public string ShaderPath { get; set; } = "res://Shaders/Lorencia/lorencialeafparticle.gdshader";
+
     public LorenciaLeafParticleSystem(TerrainControl terrainControl)
     {
         _terrainControl = terrainControl;
@@ -114,13 +95,21 @@ void fragment()
             return false;
         }
 
+        // Φόρτωση του Shader εξωτερικά από το Godot Resource System
+        var shader = GD.Load<Shader>(ShaderPath);
+        if (shader == null)
+        {
+            GD.PrintErr($"[Leaves] Failed to load shader from: {ShaderPath}");
+            return false;
+        }
+
         _root = new Node3D { Name = "LorenciaLeaves" };
         parent.AddChild(_root);
         if (Engine.IsEditorHint() && parent.Owner != null)
             _root.Owner = parent.Owner;
 
         var mesh = CreateQuadMesh();
-        var material = new ShaderMaterial { Shader = LeafShader };
+        var material = new ShaderMaterial { Shader = shader };
         material.SetShaderParameter("leaf_texture", texture);
         material.SetShaderParameter("alpha_cutoff", Mathf.Clamp(AlphaCutoff, 0.02f, 0.95f));
         mesh.SurfaceSetMaterial(0, material);

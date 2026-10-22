@@ -81,12 +81,12 @@ public partial class TerrainControl : Node3D
         tileContainer = new Node3D();
         AddChild(tileContainer);
 
-        _camera = GetViewport().GetCamera3D();
-        if (_camera != null)
-        {
-            _camera.GlobalTransform = new Transform3D(Basis.Identity, new Vector3(32, 20, 32));
-            _camera.LookAt(new Vector3(0, 0, 0), Vector3.Up);
-        }
+        // _camera = GetViewport().GetCamera3D();
+        // if (_camera != null)
+        // {
+        //     _camera.GlobalTransform = new Transform3D(Basis.Identity, new Vector3(32, 20, 32));
+        //     _camera.LookAt(new Vector3(0, 0, 0), Vector3.Up);
+        // }
 
         await LoadTerrainAsync();
 
@@ -731,4 +731,82 @@ private float GetHeightRaw(int x, int z)
 
     return _backTerrainHeight[index].R * 1.5f;
 }
+
+public byte GetBaseTextureIndexAt(int x, int y)
+{
+    x = Math.Clamp(x, 0, Client.Main.Constants.TERRAIN_SIZE - 1);
+    y = Math.Clamp(y, 0, Client.Main.Constants.TERRAIN_SIZE - 1);
+    int idx = GetTerrainIndex(x, y);
+
+    byte layer1 = (_mapping.Layer1 != null && idx < _mapping.Layer1.Length) ? _mapping.Layer1[idx] : (byte)0;
+    byte layer2 = (_mapping.Layer2 != null && idx < _mapping.Layer2.Length) ? _mapping.Layer2[idx] : layer1;
+    byte alpha = (_mapping.Alpha != null && idx < _mapping.Alpha.Length) ? _mapping.Alpha[idx] : (byte)0;
+
+    // Αν το Layer2 καλύπτει πλήρως το tile (alpha >= 253) και έχει έγκυρο texture, επιστρέφουμε το Layer2 (π.χ. πέτρα πόλης)
+    if (alpha >= 253 && layer2 != 255)
+        return layer2;
+
+    return layer1;
+}
+
+public Color GetTerrainLightColor(int x, int y)
+{
+    int idx = GetTerrainIndex(x, y);
+    if (_backTerrainLight != null && idx < _backTerrainLight.Length)
+        return _backTerrainLight[idx];
+    return Colors.White;
+}
+
+public bool IsPureGrassTile(int x, int y, HashSet<byte> grassTextureIndices)
+{
+    int size = Client.Main.Constants.TERRAIN_SIZE;
+    if (x < 0 || y < 0 || x >= size - 1 || y >= size - 1)
+        return false;
+
+    int idx1 = GetTerrainIndex(x, y);
+    int idx2 = GetTerrainIndex(x + 1, y);
+    int idx3 = GetTerrainIndex(x + 1, y + 1);
+    int idx4 = GetTerrainIndex(x, y + 1);
+
+    // 1. Έλεγχος ATT Flags: Όχι σε SafeZone, NoGround, Water ή πάνω σε εμπόδια/βράχους (NoMove)
+    if (_terrain != null && _terrain.TerrainWall != null && idx1 < _terrain.TerrainWall.Length)
+    {
+        var flags = _terrain.TerrainWall[idx1];
+        if (flags.HasFlag(TWFlags.NoGround) ||
+            flags.HasFlag(TWFlags.SafeZone) ||
+            flags.HasFlag(TWFlags.Water) ||
+            flags.HasFlag(TWFlags.NoMove))
+        {
+            return false;
+        }
+    }
+
+    // 2. Το βασικό Layer1 πρέπει να είναι στη λίστα με τα επιτρεπτά grass textures (π.χ. 0)
+    byte layer1 = (_mapping.Layer1 != null && idx1 < _mapping.Layer1.Length) ? _mapping.Layer1[idx1] : (byte)255;
+    if (!grassTextureIndices.Contains(layer1))
+        return false;
+
+    // 3. Έλεγχος Layer2 & Alpha και στις 4 γωνίες του tile!
+    // Αν υπάρχει overlay από άλλη υφή (π.χ. χώμα μονοπατιού, πέτρα, νερό) σε ΟΠΟΙΑΔΗΠΟΤΕ γωνία του tile, 
+    // απαγορεύουμε το γρασίδι για να μένουν πεντακάθαρα τα μονοπάτια και οι όχθες!
+    if (_mapping.Layer2 != null && _mapping.Alpha != null)
+    {
+        int[] corners = { idx1, idx2, idx3, idx4 };
+        foreach (int cIdx in corners)
+        {
+            if (cIdx < _mapping.Alpha.Length && cIdx < _mapping.Layer2.Length)
+            {
+                byte alpha = _mapping.Alpha[cIdx];
+                byte layer2 = _mapping.Layer2[cIdx];
+
+                // Αν η γωνία έχει έστω και λίγο blend (alpha > 10) με άλλη υφή (που δεν είναι γρασίδι), το απορρίπτουμε
+                if (alpha > 10 && layer2 != 255 && !grassTextureIndices.Contains(layer2))
+                    return false;
+            }
+        }
+    }
+
+    return true;
+}
+
 }
