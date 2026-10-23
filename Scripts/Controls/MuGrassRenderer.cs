@@ -342,10 +342,11 @@ public sealed class MuGrassRenderer
                 continue;
 
             var tileLight = _terrain.GetTerrainLightColor(x, y);
+            float bFactor = Mathf.Max(0.2f, GrassBrightness * 0.75f);
             var lit = new Color(
-                Mathf.Min(tileLight.R * GrassBrightness, 1f),
-                Mathf.Min(tileLight.G * GrassBrightness, 1f),
-                Mathf.Min(tileLight.B * GrassBrightness, 1f),
+                Mathf.Clamp(tileLight.R * bFactor, 0.05f, 1f),
+                Mathf.Clamp(tileLight.G * bFactor, 0.05f, 1f),
+                Mathf.Clamp(tileLight.B * bFactor, 0.05f, 1f),
                 1f);
 
             for (int i = 0; i < grassPerTile; i++)
@@ -459,28 +460,35 @@ public sealed class MuGrassRenderer
     {
         float halfW = GrassBladeBaseW * GrassUWidth * 0.5f;
         float h = GrassBladeBaseH;
-        float sink = -3.0f; // Βυθίζει ελάχιστα τη ρίζα στο έδαφος για να μην αιωρείται σε πλαγιές
+        float sink = -3.0f; // Βύθιση βάσης στο έδαφος
 
         var st = new SurfaceTool();
         st.Begin(Mesh.PrimitiveType.Triangles);
 
-        // --- Plane 1 (Άξονας Χ) ---
-        st.SetUV(new Vector2(0f, 1f)); st.AddVertex(new Vector3(-halfW, sink, 0f));
-        st.SetUV(new Vector2(1f, 1f)); st.AddVertex(new Vector3(halfW, sink, 0f));
-        st.SetUV(new Vector2(0f, 0f)); st.AddVertex(new Vector3(-halfW, h, 0f));
+        // Δημιουργία 3 επιπέδων σε διάταξη αστεριού (0, 60 και 120 μοίρες) 
+        // για να εξαλειφθεί εντελώς το φαινόμενο του «σταυρού»
+        int blades = 3;
+        for (int b = 0; b < blades; b++)
+        {
+            float angle = b * (Mathf.Pi / 3.0f); // 60 μοίρες διαφορά το καθένα
+            float cosA = Mathf.Cos(angle);
+            float sinA = Mathf.Sin(angle);
 
-        st.SetUV(new Vector2(1f, 1f)); st.AddVertex(new Vector3(halfW, sink, 0f));
-        st.SetUV(new Vector2(1f, 0f)); st.AddVertex(new Vector3(halfW, h, 0f));
-        st.SetUV(new Vector2(0f, 0f)); st.AddVertex(new Vector3(-halfW, h, 0f));
+            Vector3 p0 = new Vector3(-halfW * cosA, sink, -halfW * sinA);
+            Vector3 p1 = new Vector3(halfW * cosA, sink, halfW * sinA);
+            Vector3 p2 = new Vector3(-halfW * cosA, h, -halfW * sinA);
+            Vector3 p3 = new Vector3(halfW * cosA, h, halfW * sinA);
 
-        // --- Plane 2 (Άξονας Ζ - Σταυρωτό 90 μοίρες για 3D όγκο) ---
-        st.SetUV(new Vector2(0f, 1f)); st.AddVertex(new Vector3(0f, sink, -halfW));
-        st.SetUV(new Vector2(1f, 1f)); st.AddVertex(new Vector3(0f, sink, halfW));
-        st.SetUV(new Vector2(0f, 0f)); st.AddVertex(new Vector3(0f, h, -halfW));
+            // Τρίγωνο 1
+            st.SetUV(new Vector2(0f, 1f)); st.AddVertex(p0);
+            st.SetUV(new Vector2(1f, 1f)); st.AddVertex(p1);
+            st.SetUV(new Vector2(0f, 0f)); st.AddVertex(p2);
 
-        st.SetUV(new Vector2(1f, 1f)); st.AddVertex(new Vector3(0f, sink, halfW));
-        st.SetUV(new Vector2(1f, 0f)); st.AddVertex(new Vector3(0f, h, halfW));
-        st.SetUV(new Vector2(0f, 0f)); st.AddVertex(new Vector3(0f, h, -halfW));
+            // Τρίγωνο 2
+            st.SetUV(new Vector2(1f, 1f)); st.AddVertex(p1);
+            st.SetUV(new Vector2(1f, 0f)); st.AddVertex(p3);
+            st.SetUV(new Vector2(0f, 0f)); st.AddVertex(p2);
+        }
 
         st.GenerateNormals();
         st.Index();

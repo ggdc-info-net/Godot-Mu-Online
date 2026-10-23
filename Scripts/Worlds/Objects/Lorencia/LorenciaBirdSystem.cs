@@ -93,15 +93,12 @@ public sealed class LorenciaBirdSystem
         if (Engine.IsEditorHint() && parent.Owner != null)
             _root.Owner = parent.Owner;
 
-        GD.Print("[Birds Debug] Attempting to load Object1/Bird01.bmd...");
         var bmd = await _modelBuilder.LoadBmdAsync("Object1/Bird01.bmd");
         if (bmd == null)
         {
-            GD.PrintErr("[Birds Debug] FAILED to load Object1/Bird01.bmd!");
             Clear();
             return false;
         }
-        GD.Print("[Birds Debug] Bird01.bmd loaded successfully!");
 
         _materials = await _modelBuilder.LoadModelTexturesAsync("Object1/Bird01.bmd");
         SetupBirdMaterials(_materials);
@@ -121,11 +118,9 @@ public sealed class LorenciaBirdSystem
         _sharedMesh = _animationController.GetCurrentMesh();
         if (_sharedMesh == null)
         {
-            GD.PrintErr("[Birds Debug] Bird animation mesh is null after initialization!");
             Clear();
             return false;
         }
-        GD.Print("[Birds Debug] Bird shared mesh is ready!");
 
         EnsureBirdSoundPlayer();
 
@@ -133,7 +128,6 @@ public sealed class LorenciaBirdSystem
         _chirpCooldown = 0f;
         _nextBirdId = 0;
 
-        GD.Print("[Birds Debug] Lorencia bird system fully initialized!");
         return true;
     }
 
@@ -325,7 +319,6 @@ public sealed class LorenciaBirdSystem
 
             _birds.Add(bird);
             spawned++;
-            GD.Print($"[Birds Debug] Successfully spawned bird close to hero at: {spawn}");
         }
     }
 

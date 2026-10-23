@@ -45,6 +45,13 @@ public partial class GrassControl : Node3D
         _camera = GetViewport().GetCamera3D();
         Vector3 initialPos = GetTargetPosition();
 
+        float adaptedBrightness = WorldIndex switch
+        {
+            3 => 0.90f, // Devias (Χιόνι - πιο σκοτεινό/ψυχρό για να μημπιφτείνει λευκό)
+            4 => 1.05f, // Noria (Δάσος)
+            _ => 1.15f  // Lorencia
+        };
+
         _grassRenderer = new MuGrassRenderer(terrainControl)
         {
             MaxInstances = MaxInstances,
@@ -59,7 +66,7 @@ public partial class GrassControl : Node3D
             RebuildTilesPerFrame = 250
         };
 
-        _grassRenderer.ConfigureGrass(GrassBrightness, 0);
+        _grassRenderer.ConfigureGrass(adaptedBrightness, 0);
 
         GD.Print($"[GrassControl] Building grass around: {initialPos}");
         await _grassRenderer.BuildAsync(WorldIndex, this, initialPos);

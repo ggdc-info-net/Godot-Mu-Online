@@ -32,9 +32,6 @@ public static class LorenciaSurfaceFixer
 
             string texName = mat.AlbedoTexture?.ResourceName ?? "UnknownTexture";
 
-            // Εκτύπωση στην κονσόλα για να δούμε ποιο surface είναι η σκιά/φως της άμαξας
-            GD.Print($"[Carriage Type 98] Surface {i}: Texture={texName}, Transparency={mat.Transparency}, Blend={mat.BlendMode}");
-
             // Δοκιμαστικά εφαρμόζουμε Additive Blend στο τελευταίο surface της άμαξας
             if (i == surfaceCount - 1)
             {

@@ -221,8 +221,6 @@ public partial class ObjectControl : Node3D
             if (worldRules.IsSpecialObject(mapObj.Type))
             {
                 specialObjectsList.Add(mapObj);
-                GD.Print($"✔ Special Object detected! Type: {mapObj.Type}");
-                GD.Print($"Object Type: {mapObj.Type}");
             }
             else if (hasAnimation)
             {
