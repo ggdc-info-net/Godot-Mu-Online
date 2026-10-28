@@ -8,13 +8,15 @@
 
 [node name="TerrainControl" type="Node3D" parent="." unique_id=105778681]
 script = ExtResource("1_okq71")
-WorldIndex = 74
+WorldIndex = 95
 
 [node name="ObjectControl" type="Node3D" parent="." unique_id=158799891]
 script = ExtResource("2_wosnj")
-WorldIndex = 74
+WorldIndex = 95
 
 [node name="Camera3D" type="Camera3D" parent="." unique_id=1219383105]
+near = 1.0
+far = 2500.0
 script = ExtResource("3_t3l2h")
 MoveSpeed = 1000.0
 

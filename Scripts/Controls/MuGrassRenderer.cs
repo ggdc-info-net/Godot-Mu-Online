@@ -13,18 +13,16 @@ public sealed class MuGrassRenderer
     private const int TerrainSize = Client.Main.Constants.TERRAIN_SIZE;
     private const float ScaleFactor = Client.Main.Constants.TERRAIN_SCALE; // 100f
 
-    // Αποστάσεις σε World Units (30, 40, 50 tiles * 100 scale)
+    // Αποστάσεις σε World Units
     private const float GrassNearSq = (30f * ScaleFactor) * (30f * ScaleFactor);
     private const float GrassMidSq = (40f * ScaleFactor) * (40f * ScaleFactor);
     private const float GrassFarSq = (50f * ScaleFactor) * (50f * ScaleFactor);
 
-    // Βασικές διαστάσεις λεπίδας προσαρμοσμένες στο Scale = 100
+    // Βασικές διαστάσεις λεπίδας
     private const float GrassBladeBaseW = 1.30f * ScaleFactor;
-    private const float GrassBladeBaseH = 0.45f * ScaleFactor;
+    private const float GrassBladeBaseH = 0.85f * ScaleFactor;
     private const float HeightOffset = 0f;
     private const float GrassUWidth = 0.30f;
-
-    
 
     private readonly struct GrassTile
     {
@@ -354,8 +352,10 @@ public sealed class MuGrassRenderer
                 if (_rebuildInstanceCount >= MaxInstances)
                     break;
 
-                float halfUV = GrassUWidth * 0.5f;
-                float maxOffset = 0.5f - halfUV;
+                // 📌 Αυξάνουμε ελαφρώς το maxOffset (από 0.5f σε 0.68f) ώστε τα χόρτα 
+                // να επεκτείνονται ελαφρώς προς τα όρια και να κλείνουν τα κενά ανάμεσα στα tiles,
+                // παραμένοντας όμως ασφαλή εντός των καθαρών grass tiles.
+                float maxOffset = 0.68f;
 
                 float rx = (PseudoRandom(x, y, 17 + i) * 2f - 1f) * maxOffset;
                 float ry = (PseudoRandom(x, y, 91 + i) * 2f - 1f) * maxOffset;
@@ -369,7 +369,7 @@ public sealed class MuGrassRenderer
 
                 Vector3 finalScale = new Vector3(
                     randomScale * BladeWidthScale,
-                    randomScale * BladeHeightScale,
+                    randomScale * BladeHeightScale * 0.70f,
                     randomScale * BladeWidthScale
                 );
 
@@ -465,12 +465,10 @@ public sealed class MuGrassRenderer
         var st = new SurfaceTool();
         st.Begin(Mesh.PrimitiveType.Triangles);
 
-        // Δημιουργία 3 επιπέδων σε διάταξη αστεριού (0, 60 και 120 μοίρες) 
-        // για να εξαλειφθεί εντελώς το φαινόμενο του «σταυρού»
         int blades = 3;
         for (int b = 0; b < blades; b++)
         {
-            float angle = b * (Mathf.Pi / 3.0f); // 60 μοίρες διαφορά το καθένα
+            float angle = b * (Mathf.Pi / 3.0f);
             float cosA = Mathf.Cos(angle);
             float sinA = Mathf.Sin(angle);
 
@@ -479,12 +477,10 @@ public sealed class MuGrassRenderer
             Vector3 p2 = new Vector3(-halfW * cosA, h, -halfW * sinA);
             Vector3 p3 = new Vector3(halfW * cosA, h, halfW * sinA);
 
-            // Τρίγωνο 1
             st.SetUV(new Vector2(0f, 1f)); st.AddVertex(p0);
             st.SetUV(new Vector2(1f, 1f)); st.AddVertex(p1);
             st.SetUV(new Vector2(0f, 0f)); st.AddVertex(p2);
 
-            // Τρίγωνο 2
             st.SetUV(new Vector2(1f, 1f)); st.AddVertex(p1);
             st.SetUV(new Vector2(1f, 0f)); st.AddVertex(p3);
             st.SetUV(new Vector2(0f, 0f)); st.AddVertex(p2);

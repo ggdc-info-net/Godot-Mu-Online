@@ -92,7 +92,7 @@ public partial class TerrainControl : Node3D
 
         tileContainer.Scale = new Vector3(1, 1, -1);
         RenderTerrain();
-        //RenderTerrainWireframe();
+        RenderTerrainWireframe();
         IsLoaded = true;
     }
 

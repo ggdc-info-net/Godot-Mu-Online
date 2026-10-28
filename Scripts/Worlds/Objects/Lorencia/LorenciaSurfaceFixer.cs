@@ -41,6 +41,7 @@ public static class LorenciaSurfaceFixer
                 customMat.BlendMode = BaseMaterial3D.BlendModeEnum.Add;
                 customMat.ShadingMode = BaseMaterial3D.ShadingModeEnum.Unshaded;
                 customMat.DepthDrawMode = BaseMaterial3D.DepthDrawModeEnum.Disabled;
+                customMat.DisableFog = true; // 👈 Κρύβει την ομίχλη από το additive surface για να μη φαίνεται το τετράγωνο!
 
                 meshInst.SetSurfaceOverrideMaterial(i, customMat);
             }

@@ -1,3 +1,4 @@
+using Client.Data;
 using Godot;
 using MuGodot.Objects.Worlds.Lorencia;
 
@@ -56,6 +57,8 @@ public partial class LorenciaWorld : Node3D
 
         await _ambientManager.ConfigureForWorldAsync(1, this, limitEffects: false);
         GD.Print("[LorenciaWorld] AmbientManager configuration completed.");
+
+        ApplyWorldAtmosphere();
     }
 
     public override void _Process(double delta)
@@ -132,4 +135,53 @@ public partial class LorenciaWorld : Node3D
         _nextAmbientInterval = _rng.RandfRange(10.0f, 25.0f);
         _ambientTimer = _nextAmbientInterval;
     }
+
+    private void ApplyWorldAtmosphere()
+{
+    var worldEnv = GetTree().Root.FindChild("WorldEnvironment", true, false) as WorldEnvironment;
+    if (worldEnv == null)
+    {
+        worldEnv = new WorldEnvironment { Name = "WorldEnvironment" };
+        AddChild(worldEnv);
+    }
+
+    if (worldEnv.Environment == null)
+    {
+        worldEnv.Environment = new Godot.Environment();
+    }
+
+    var env = worldEnv.Environment;
+
+    // 1. Ξεκινάμε την ομίχλη σίγουρα ΠΙΣΩ από τον παίκτη!
+    // Η κάμερα έχει MaxDistance = 1800f * WorldToGodot. 
+    // Άρα στα 2400f ο παίκτης είναι 100% έξω από την ομίχλη ακόμα και στο τέρμα zoom out.
+    float fogBegin = Constants.WorldToGodot * 2400f; 
+    float fogEnd   = Constants.WorldToGodot * 9500f;
+
+    Color lorenciaFogColor = new Color(0.15f, 0.14f, 0.11f, 1.0f);
+
+    env.BackgroundMode = Godot.Environment.BGMode.Color;
+    env.BackgroundColor = lorenciaFogColor;
+
+    // 📌 2. ΤΟ ΜΥΣΤΙΚΟ: Κλειδώνουμε το Ambient Light και τις αντανακλάσεις σε καθαρό ΛΕΥΚΟ!
+    // Έτσι το BackgroundColor (η ομίχλη) ΔΕΝ βάφει ποτέ τον παίκτη και τα μοντέλα!
+    env.AmbientLightSource = Godot.Environment.AmbientSource.Color;
+    env.AmbientLightColor = Colors.White;
+    env.AmbientLightSkyContribution = 0.0f; // 0% επιρροή από το χρώμα του φόντου/ουρανού!
+    env.AmbientLightEnergy = 0.65f;         // Καθαρός, ουδέτερος φωτισμός
+    env.ReflectedLightSource = Godot.Environment.ReflectionSource.Disabled; // Κόβει τις χρωματιστές γυαλάδες πάνω στις πανοπλίες
+
+    // 3. Ρυθμίσεις Ομίχλης
+    env.VolumetricFogEnabled = false;
+    env.FogEnabled = true;
+    env.FogMode = Godot.Environment.FogModeEnum.Depth;
+    
+    env.FogLightColor = lorenciaFogColor;
+    env.FogLightEnergy = 1.0f;
+    env.FogDensity = 1.0f;
+    env.FogDepthBegin = fogBegin;
+    env.FogDepthEnd = fogEnd;
+    env.FogDepthCurve = 1.8f; // Λίγο πιο υψηλή καμπύλη ώστε κοντά στο fogBegin η ομίχλη να είναι σχεδόν 0%
+    env.FogSkyAffect = 1.0f;
+}
 }

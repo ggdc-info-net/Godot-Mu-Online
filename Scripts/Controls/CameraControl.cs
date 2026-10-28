@@ -8,7 +8,7 @@ namespace MuGodot;
 public partial class CameraControl : Node3D
 {
 	private const float CameraNear = Constants.WorldToGodot * 10f;
-	private const float CameraFar = Constants.WorldToGodot * 3600f;
+	private const float CameraFar = Constants.WorldToGodot * 10000f;
 	private static readonly float DefaultYaw = Mathf.DegToRad(-41.99f);
 	private static readonly float DefaultPitch = Mathf.DegToRad(135.87f);
 	private const float MinPitch = 110f * Mathf.Pi / 180f;

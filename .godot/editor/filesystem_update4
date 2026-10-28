@@ -1,11 +1,3 @@
-res://Scenes/MapManager.tscn
-res://Shaders/WaterShader.gdshader
-res://Shaders/TileBaseShader.gdshader
-res://Shaders/TileOverlayShader.gdshader
-res://Shaders/Lorencia/firehik01.gdshader
-res://Shaders/Lorencia/lorencialeafparticle.gdshader
-res://Shaders/Lorencia/grass.gdshader
-res://Scripts/Worlds/Objects/Lorencia/LorenciaAmbientManager.cs
 res://PerformanceOverlay.cs
 res://Scripts/MapManager.cs
 res://Scripts/LoginScene.cs
@@ -22,4 +14,13 @@ res://Scripts/Worlds/LorenciaWorld.cs
 res://FreeCamera3d.cs
 res://Scripts/Controllers/MuAnimatedMeshController.cs
 res://Scripts/Controls/ObjectControl.cs
+res://Scripts/Worlds/Objects/Lorencia/LorenciaAmbientManager.cs
 res://Scripts/Controllers/ObjectCullingSystem.cs
+res://Scenes/node_3d.tscn
+res://Shaders/WaterShader.gdshader
+res://Shaders/TileBaseShader.gdshader
+res://Shaders/TileOverlayShader.gdshader
+res://Shaders/Lorencia/firehik01.gdshader
+res://Shaders/Lorencia/lorencialeafparticle.gdshader
+res://Shaders/Lorencia/grass.gdshader
+res://Shaders/Lorencia/distance_fog.gdshader
