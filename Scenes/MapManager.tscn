@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dg542p4m71s20"]
 
-[ext_resource type="Script" uid="uid://dsfd04yoe1dgo" path="res://Scripts/MapManager.cs" id="1_31gb2"]
-[ext_resource type="Script" uid="uid://ds0vihb3lm3sr" path="res://PerformanceOverlay.cs" id="2_phkka"]
+[ext_resource type="Script" uid="uid://dsfd04yoe1dgo" path="res://Scripts/Managers/MapManager.cs" id="1_31gb2"]
+[ext_resource type="Script" uid="uid://ds0vihb3lm3sr" path="res://Scripts/PerformanceOverlay.cs" id="2_phkka"]
 
 [node name="Node3D" type="Node3D" unique_id=1194544295]
 script = ExtResource("1_31gb2")

@@ -15,14 +15,20 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="Mu Online Clone"
-run/main_scene="uid://dx7ygs42mva0i"
+run/main_scene="uid://ht5dxwjfdywr"
 config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 config/icon="res://icon.svg"
+
+[autoload]
+
+GameManager="*uid://c6gu7l04l08jw"
+MapManager="*uid://dsfd04yoe1dgo"
 
 [display]
 
 window/size/viewport_width=1280
-window/size/viewport_height=800
+window/size/viewport_height=720
+window/stretch/mode="canvas_items"
 
 [dotnet]
 

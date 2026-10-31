@@ -8,6 +8,7 @@ public static class WorldObjectRulesResolver
         return worldIndex switch
         {
             1 => LorenciaWorldObjectRules.Instance,
+            94 => SelectCharacterWorldObjectRules.Instance,
             // 2 => DeviasWorldObjectRules.Instance, (μελλοντικά για Noria/Devias)
             _ => FallbackWorldObjectRules.Instance
         };

@@ -94,6 +94,7 @@ public partial class TerrainControl : Node3D
         RenderTerrain();
         RenderTerrainWireframe();
         IsLoaded = true;
+        AddChild(new DebugOverlay());
     }
 
     public override void _Process(double delta)

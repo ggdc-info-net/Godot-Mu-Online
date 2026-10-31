@@ -37,6 +37,7 @@ public partial class GrassControl : Node3D
         while (_player == null || _player.GlobalPosition == Vector3.Zero)
         {
             _player = GetParent().GetNodeOrNull<Node3D>("Player");
+            if (!IsInsideTree() || !GodotObject.IsInstanceValid(this)) return;
             await ToSignal(GetTree(), "process_frame");
             waitFrames++;
             if (waitFrames > 60) break;
@@ -88,18 +89,24 @@ public partial class GrassControl : Node3D
     }
 
     private Vector3 GetTargetPosition()
+{
+    if (!IsInsideTree()) return Vector3.Zero;
+
+    // Αν ελέγχεις τον Player:
+    if (_player != null && GodotObject.IsInstanceValid(_player) && _player.IsInsideTree())
     {
-        if (_player != null && GodotObject.IsInstanceValid(_player) && _player.GlobalPosition != Vector3.Zero)
-            return _player.GlobalPosition;
-
-        if (_camera == null || !GodotObject.IsInstanceValid(_camera))
-            _camera = GetViewport().GetCamera3D();
-
-        if (_camera != null)
-            return _camera.GlobalPosition;
-
-        return new Vector3(13800f, 0f, -12400f);
+        return _player.GlobalPosition;
     }
+
+    // Αν ελέγχεις την Camera:
+    var cam = GetViewport()?.GetCamera3D();
+    if (cam != null && GodotObject.IsInstanceValid(cam) && cam.IsInsideTree())
+    {
+        return cam.GlobalPosition;
+    }
+
+    return Vector3.Zero;
+}
 
     public void Clear()
     {

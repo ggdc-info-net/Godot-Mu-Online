@@ -24,7 +24,9 @@ namespace Client.Main.Core.Utilities
                 { 8, "Atlans" },
                 { 9, "Tarkan" },
                 { 10, "Devil Square" },
-                { 11, "Icarus" }
+                { 11, "Icarus" },
+                { 94, "SelectCharacterScene" },
+                { 95, "LoginScene"}
             };
         }
 

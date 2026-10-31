@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://dta6gxki8wncn"]
+
+[ext_resource type="Script" uid="uid://ds0vihb3lm3sr" path="res://Scripts/PerformanceOverlay.cs" id="2_p25gn"]
+[ext_resource type="Script" uid="uid://dbotpo6cvs4d7" path="res://Scripts/Worlds/LoginScene.cs" id="3_h78yt"]
+[ext_resource type="Script" uid="uid://cq3wsmksrvapu" path="res://Scripts/UI/Login Scene/MuLogo.cs" id="4_0u2o2"]
+[ext_resource type="Script" uid="uid://dfus4jskuw2so" path="res://Scripts/UI/Login Scene/ServerButton.cs" id="5_gudi6"]
+
+[node name="LoginScene" type="Node3D" unique_id=1194544295]
+script = ExtResource("3_h78yt")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1823863548]
+script = ExtResource("2_p25gn")
+
+[node name="Control" type="Control" parent="." unique_id=246198543]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 40.0
+offset_bottom = 40.0
+script = ExtResource("4_0u2o2")
+
+[node name="cha_bt" type="Button" parent="." unique_id=353371091]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 24.0
+offset_bottom = 24.0
+script = ExtResource("5_gudi6")

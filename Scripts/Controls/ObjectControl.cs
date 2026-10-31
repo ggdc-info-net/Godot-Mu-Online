@@ -59,9 +59,11 @@ public partial class ObjectControl : Node3D
     // Ορίζουμε πώς θα βρίσκει τη θέση του παίκτη. 
     // (Εδώ χρησιμοποιούμε την κάμερα ή μπορείς να βάλεις τη θέση του Player σου αν τον έχεις αποθηκευμένο κάπου)
     _occlusionSystem.Initialize(() => {
-        var player = GetTree().CurrentScene.GetNodeOrNull<Node3D>("Player"); // ή όπως αλλοιώς τον έχεις ονομάσει
-        return player != null ? player.GlobalPosition : Vector3.Zero;
-    });
+    var currentScene = GetTree()?.CurrentScene;
+    if (currentScene == null || !GodotObject.IsInstanceValid(currentScene)) return Vector3.Zero;
+    var player = currentScene.GetNodeOrNull<Node3D>("Player");
+    return (player != null && player.IsInsideTree()) ? player.GlobalPosition : Vector3.Zero;
+});
 
     _camera = GetViewport().GetCamera3D();
     await LoadObjectsAsync();
@@ -90,64 +92,60 @@ public partial class ObjectControl : Node3D
     }
 
     public override void _Process(double delta)
+{
+    if (!IsInsideTree()) return;
+
+    // Αν η προηγούμενη κάμερα καταστράφηκε ή βγήκε από το Scene Tree (π.χ. αλλαγή σκηνής), ψάχνουμε τη νέα!
+    if (_camera == null || !GodotObject.IsInstanceValid(_camera) || !_camera.IsInsideTree())
     {
-        if (_camera == null)
+        _camera = GetViewport()?.GetCamera3D();
+        if (_camera != null && _camera.IsInsideTree() && _cullingSystem != null && GodotObject.IsInstanceValid(_cullingSystem))
         {
-            _camera = GetViewport().GetCamera3D();
-            if (_camera != null && _cullingSystem != null)
-            {
-                _cullingSystem.Initialize(_camera);
-                _cullingSystem.RebuildCaches(_objectContainer);
-            }
+            _cullingSystem.Initialize(_camera);
+            _cullingSystem.RebuildCaches(_objectContainer);
         }
-        
-        // --- 3. UPDATE ΤΟΥ OCCLUSION SYSTEM ΚΑΘΕ FRAME ---
-    if (_occlusionSystem != null)
+    }
+
+    if (_occlusionSystem != null && GodotObject.IsInstanceValid(_occlusionSystem))
     {
         _occlusionSystem.UpdateOcclusion(delta, WorldIndex, IsLoaded);
     }
 
-        if (_camera != null)
+    // Εκτελούμε τους υπολογισμούς ΜΟΝΟ αν η κάμερα βρίσκεται όντως μέσα στο δέντρο
+    if (_camera != null && GodotObject.IsInstanceValid(_camera) && _camera.IsInsideTree())
+    {
+        Vector3 camPos = _camera.GlobalPosition; // Γραμμή 113: Πλέον 100% ασφαλής!
+
+        if (_cullingSystem != null && GodotObject.IsInstanceValid(_cullingSystem))
         {
-            Vector3 camPos = _camera.GlobalPosition;
+            _cullingSystem.Update(delta, camPos);
+        }
 
-            // 1. Ενημέρωση του Culling System για τα στατικά
-            if (_cullingSystem != null)
+        float animDistSq = 2000f * 2000f;
+        var currentScene = GetTree()?.CurrentScene;
+        bool hasPlayer = currentScene != null && GodotObject.IsInstanceValid(currentScene) && currentScene.GetNodeOrNull<Node3D>("Player") != null;
+
+        foreach (var obj in _animatedObjects)
+        {
+            if (obj.Anim == null || !GodotObject.IsInstanceValid(obj.Anim)) continue;
+
+            bool isNear = !hasPlayer || (obj.Pos.DistanceSquaredTo(camPos) <= animDistSq);
+            if (isNear)
             {
-                _cullingSystem.Update(delta, camPos);
+                if (obj.Anim.ProcessMode != Node.ProcessModeEnum.Inherit)
+                    obj.Anim.ProcessMode = Node.ProcessModeEnum.Inherit;
+
+                if (!obj.Anim.IsPlaying())
+                    obj.Anim.Play("Action_0");
             }
-
-            // 2. Έλεγχος απόστασης για τα Animated (2000m)
-            float animDistSq = 2000f * 2000f; 
-
-            foreach (var obj in _animatedObjects)
+            else
             {
-                if (obj.Anim == null || !GodotObject.IsInstanceValid(obj.Anim)) continue;
-
-                bool isNear = obj.Pos.DistanceSquaredTo(camPos) <= animDistSq;
-                
-                if (isNear)
-                {
-                    if (obj.Anim.ProcessMode != Node.ProcessModeEnum.Inherit)
-                    {
-                        obj.Anim.ProcessMode = Node.ProcessModeEnum.Inherit;
-                    }
-
-                    if (!obj.Anim.IsPlaying())
-                    {
-                        obj.Anim.Play("Action_0"); 
-                    }
-                }
-                else
-                {
-                    if (obj.Anim.ProcessMode != Node.ProcessModeEnum.Disabled)
-                    {
-                        obj.Anim.ProcessMode = Node.ProcessModeEnum.Disabled;
-                    }
-                }
+                if (obj.Anim.ProcessMode != Node.ProcessModeEnum.Disabled)
+                    obj.Anim.ProcessMode = Node.ProcessModeEnum.Disabled;
             }
         }
     }
+}
 
     public async Task LoadObjectsAsync()
     {
