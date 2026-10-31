@@ -5,20 +5,17 @@
 [ext_resource type="Script" uid="uid://ds0vihb3lm3sr" path="res://Scripts/PerformanceOverlay.cs" id="4_v7pif"]
 [ext_resource type="Script" uid="uid://c7e37a0e25q2y" path="res://Scripts/FreeCamera3d.cs" id="4_w83rk"]
 
-[sub_resource type="Environment" id="Environment_xrivr"]
-background_mode = 1
-
 [node name="Node3D" type="Node3D" unique_id=509199155]
 
 [node name="TerrainControl" type="Node3D" parent="." unique_id=460043987]
 script = ExtResource("1_2qbgj")
-WorldIndex = 94
+WorldIndex = 1
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=456590668]
 
 [node name="ObjectControl" type="Node3D" parent="." unique_id=1926084857]
 script = ExtResource("3_v7pif")
-WorldIndex = 94
+WorldIndex = 1
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1269653800]
 script = ExtResource("4_v7pif")
@@ -29,6 +26,3 @@ near = 10.0
 far = 15000.0
 script = ExtResource("4_w83rk")
 MoveSpeed = 2000.0
-
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=2044557454]
-environment = SubResource("Environment_xrivr")

@@ -31,10 +31,18 @@ public partial class PlayerControl : Node3D
         _modelBuilder = new MuModelBuilder();
         await SpawnAsync();
     
+        if (!GodotObject.IsInstanceValid(this) || !IsInsideTree()) return;
+
         // Setup Κάμερας
         _playerCamera = new CameraControl { Name = "MainCamera" };
         GetParent().AddChild(_playerCamera); 
         _playerCamera.Initialize(() => this.GlobalPosition);
+
+if (_playerCamera != null && _playerCamera.Camera != null)
+{
+    GD.Print($"Player Pos: {GlobalPosition} | Cam Pos: {_playerCamera.GlobalPosition} | IsCurrent: {_playerCamera.Camera.Current}");
+}
+   
 
         // Περιμένουμε το Terrain
         while (TerrainControl.Instance == null || !TerrainControl.Instance.IsLoaded)
@@ -47,14 +55,16 @@ public partial class PlayerControl : Node3D
         _playerCamera.ResetAndUpdate();
 
         if (ObjectControl.Instance != null)
-    {
-        ObjectControl.Instance.SetPlayerPositionSource(() => this.GlobalPosition);
-    }
+        {
+            ObjectControl.Instance.SetPlayerPositionSource(() => this.GlobalPosition);
+        }
     }
 
     public async Task SpawnAsync()
     {
         _skeletonBmd = await _modelBuilder.LoadBmdAsync("Player/Player.bmd");
+        if (!GodotObject.IsInstanceValid(this) || !IsInsideTree()) return;
+        
         if (_skeletonBmd == null) return;
 
         string[] parts = { 

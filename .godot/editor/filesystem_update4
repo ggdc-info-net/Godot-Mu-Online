@@ -1,0 +1,35 @@
+res://Scripts/UI/Select Character Scene/SelectCharacterUIManager.cs
+res://Scripts/Worlds/SelectCharacterScene.cs
+res://Scripts/UI/Login Scene/ServerButton.cs
+res://Scripts/UI/Login Scene/MuLogo.cs
+res://Scripts/Worlds/LoginScene.cs
+res://Scripts/PerformanceOverlay.cs
+res://Scripts/Managers/MapManager.cs
+res://Scripts/Managers/GameManager.cs
+res://Scripts/UI/Select Character Scene/CharacterCreationDialog.cs
+res://Scripts/FreeCamera3d.cs
+res://Scripts/Worlds/Objects/Lorencia/LorenciaFireEmitter.cs
+res://Scripts/Worlds/LorenciaWorld.cs
+res://Scripts/Worlds/Objects/Lorencia/LorenciaPointLightEmitter.cs
+res://Scripts/Controls/ObjectControl.cs
+res://Scripts/DebugOverlay.cs
+res://Scripts/Worlds/Objects/Lorencia/LorenciaAmbientManager.cs
+res://Client.Main/Content/BMDLoader.cs
+res://Scripts/UI/Select Character Scene/CharacterSlotsUI.cs
+res://Scripts/Controllers/ObjectCullingSystem.cs
+res://Scripts/Controls/PlayerControl.cs
+res://Scripts/Controls/TerrainControl.cs
+res://Scripts/Controls/CameraControl.cs
+res://Scripts/Controls/GrassControl.cs
+res://Scripts/test.cs
+res://Scripts/Controllers/MuAnimatedMeshController.cs
+res://Scripts/Worlds/Objects/Lorencia/LorenciaHouseOcclusionSystem.cs
+res://Scenes/Game Scene/GameScene.tscn
+res://Shaders/WaterShader.gdshader
+res://Shaders/TileBaseShader.gdshader
+res://Shaders/TileOverlayShader.gdshader
+res://Shaders/Lorencia/firehik01.gdshader
+res://Shaders/Lorencia/lorencialeafparticle.gdshader
+res://Shaders/Lorencia/grass.gdshader
+res://Shaders/Lorencia/distance_fog.gdshader
+res://Scripts/Worlds/GameScene.cs

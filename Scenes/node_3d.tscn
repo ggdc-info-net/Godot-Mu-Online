@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://dx7ygs42mva0i"]
+
+[ext_resource type="Script" uid="uid://dsfd04yoe1dgo" path="res://Scripts/Managers/MapManager.cs" id="1_7q7q3"]
+
+[node name="Node3D" type="Node3D" unique_id=716472567]
+script = ExtResource("1_7q7q3")
+
+[node name="Node3D" type="Node3D" parent="." unique_id=126409835]

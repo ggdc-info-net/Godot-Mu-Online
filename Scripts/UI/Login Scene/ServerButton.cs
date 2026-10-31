@@ -93,9 +93,9 @@ namespace Client.Main.Controls.UI.Login
         private void OnServerButtonPressed()
         {
             Disabled = true; // Κλειδώνει το κουμπί για να μην πατηθεί 2 φορές
-    GD.Print("[ServerButton] Clicked! Switching state to SelectCharacter...");
+            GD.Print("[ServerButton] Clicked! Switching state to SelectCharacter...");
 
-    GameManager.Instance.ChangeGameState(GameManager.GameState.SelectCharacter);
+            GameManager.Instance.ChangeGameState(GameManager.GameState.SelectCharacter);
         }
 
         private void UpdateVisualState()

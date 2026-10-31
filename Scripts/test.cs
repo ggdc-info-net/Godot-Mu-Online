@@ -10,9 +10,9 @@ public partial class test : Node3D
     public override async void _Ready()
     {
         BMDReader reader = new BMDReader();
-        string modelFolder = "Object1";
+        string modelFolder = "Object94";
         
-        string actualPath = GetActualFilePath(modelFolder, "Object91.bmd");
+        string actualPath = GetActualFilePath(modelFolder, "Object18.bmd");
         if (actualPath == null) 
         {
             GD.PrintErr("Το αρχείο δεν βρέθηκε!");

@@ -92,9 +92,9 @@ public partial class TerrainControl : Node3D
 
         tileContainer.Scale = new Vector3(1, 1, -1);
         RenderTerrain();
-        RenderTerrainWireframe();
+        //RenderTerrainWireframe();
         IsLoaded = true;
-        AddChild(new DebugOverlay());
+        //AddChild(new DebugOverlay());
     }
 
     public override void _Process(double delta)
