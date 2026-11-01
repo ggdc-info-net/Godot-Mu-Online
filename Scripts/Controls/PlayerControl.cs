@@ -38,12 +38,6 @@ public partial class PlayerControl : Node3D
         GetParent().AddChild(_playerCamera); 
         _playerCamera.Initialize(() => this.GlobalPosition);
 
-if (_playerCamera != null && _playerCamera.Camera != null)
-{
-    GD.Print($"Player Pos: {GlobalPosition} | Cam Pos: {_playerCamera.GlobalPosition} | IsCurrent: {_playerCamera.Camera.Current}");
-}
-   
-
         // Περιμένουμε το Terrain
         while (TerrainControl.Instance == null || !TerrainControl.Instance.IsLoaded)
         {

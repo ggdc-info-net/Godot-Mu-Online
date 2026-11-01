@@ -26,7 +26,11 @@ public partial class GrassControl : Node3D
 
     public override async void _Ready()
     {
-        var terrainControl = GetParent().GetNodeOrNull<TerrainControl>("TerrainControl");
+        // 📌 Ασφαλής έλεγχος γονέα
+        var parent = GetParent();
+        if (parent == null) return;
+
+        var terrainControl = parent.GetNodeOrNull<TerrainControl>("TerrainControl");
         if (terrainControl == null)
         {
             GD.PrintErr("[GrassControl] TerrainControl not found!");
@@ -36,22 +40,22 @@ public partial class GrassControl : Node3D
         int waitFrames = 0;
         while (_player == null || _player.GlobalPosition == Vector3.Zero)
         {
-            _player = GetParent().GetNodeOrNull<Node3D>("Player");
-            if (!IsInsideTree() || !GodotObject.IsInstanceValid(this)) return;
-            await ToSignal(GetTree(), "process_frame");
+            var p = GetParent();
+            if (p == null || !IsInsideTree() || !GodotObject.IsInstanceValid(this)) return;
+
+            _player = p.GetNodeOrNull<Node3D>("Player");
+            
+            var tree = GetTree();
+            if (tree == null) return;
+            
+            await ToSignal(tree, "process_frame");
             waitFrames++;
             if (waitFrames > 60) break;
         }
 
-        _camera = GetViewport().GetCamera3D();
+        var viewport = GetViewport();
+        _camera = viewport?.GetCamera3D();
         Vector3 initialPos = GetTargetPosition();
-
-        float adaptedBrightness = WorldIndex switch
-        {
-            3 => 0.90f, // Devias (Χιόνι - πιο σκοτεινό/ψυχρό για να μημπιφτείνει λευκό)
-            4 => 1.05f, // Noria (Δάσος)
-            _ => 1.15f  // Lorencia
-        };
 
         _grassRenderer = new MuGrassRenderer(terrainControl)
         {
@@ -67,7 +71,7 @@ public partial class GrassControl : Node3D
             RebuildTilesPerFrame = 250
         };
 
-        _grassRenderer.ConfigureGrass(adaptedBrightness, 0);
+        _grassRenderer.ConfigureGrass(GrassBrightness, 0);
 
         GD.Print($"[GrassControl] Building grass around: {initialPos}");
         await _grassRenderer.BuildAsync(WorldIndex, this, initialPos);
@@ -82,31 +86,29 @@ public partial class GrassControl : Node3D
         _grassRenderer.WindSpeed = WindSpeed;
         _grassRenderer.WindStrength = WindStrength;
 
-        if (_player == null || !GodotObject.IsInstanceValid(_player))
-            _player = GetParent().GetNodeOrNull<Node3D>("Player");
+        var parent = GetParent();
+        if (parent != null && (_player == null || !GodotObject.IsInstanceValid(_player)))
+            _player = parent.GetNodeOrNull<Node3D>("Player");
 
         _grassRenderer.Update(delta, GetTargetPosition());
     }
 
     private Vector3 GetTargetPosition()
-{
-    if (!IsInsideTree()) return Vector3.Zero;
-
-    // Αν ελέγχεις τον Player:
-    if (_player != null && GodotObject.IsInstanceValid(_player) && _player.IsInsideTree())
     {
-        return _player.GlobalPosition;
-    }
+        if (_player != null && GodotObject.IsInstanceValid(_player) && _player.GlobalPosition != Vector3.Zero)
+            return _player.GlobalPosition;
 
-    // Αν ελέγχεις την Camera:
-    var cam = GetViewport()?.GetCamera3D();
-    if (cam != null && GodotObject.IsInstanceValid(cam) && cam.IsInsideTree())
-    {
-        return cam.GlobalPosition;
-    }
+        if (_camera == null || !GodotObject.IsInstanceValid(_camera))
+        {
+            var viewport = GetViewport();
+            _camera = viewport?.GetCamera3D();
+        }
 
-    return Vector3.Zero;
-}
+        if (_camera != null && GodotObject.IsInstanceValid(_camera))
+            return _camera.GlobalPosition;
+
+        return new Vector3(13800f, 0f, -12400f);
+    }
 
     public void Clear()
     {

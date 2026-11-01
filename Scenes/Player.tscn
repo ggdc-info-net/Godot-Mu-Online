@@ -6,3 +6,5 @@
 
 [node name="Node3D" type="Node3D" parent="." unique_id=1240467035]
 script = ExtResource("1_rpqav")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1140362952]

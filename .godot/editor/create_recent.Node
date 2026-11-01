@@ -1,7 +1,7 @@
+Button
+DirectionalLight3D
 Node3D
 WorldEnvironment
-DirectionalLight3D
-Button
 CenterContainer
 MarginContainer
 Panel
